@@ -14,6 +14,7 @@ namespace MysteryBoxCleanUp
         [STAThread]
         static void Main()
         {
+            //edit to the file
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
             Application.Run(new Form1());
