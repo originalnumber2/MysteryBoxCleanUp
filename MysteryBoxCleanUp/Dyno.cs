@@ -7,8 +7,9 @@ using MccDaq;
 using System.IO.Ports;
 using System.Threading;
 
-namespace DynoLogger
+namespace MysteryBoxCleanUp
 {
+	//class is built to manage communication with the Kilster 9233C rotating cutting force dynomometer through an MC daq card.
     class Dyno
     {
         //class variables (some of these need to move to the constructor

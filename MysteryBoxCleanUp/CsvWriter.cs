@@ -6,7 +6,7 @@ using System.Text;
 using System.Threading.Tasks;
 
 
-namespace DynoLogger
+namespace MysteryBoxCleanUp
 {
     class CsvWriter
     {
