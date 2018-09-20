@@ -77,6 +77,12 @@
       <DesignTimeSharedInput>True</DesignTimeSharedInput>
     </Compile>
     <Compile Include="SensorBox.cs" />
+    <Compile Include="MatlabCom.cs" />
+    <Compile Include="Modbus.cs" />
+    <Compile Include="VerticalMotor.cs" />
+    <Compile Include="TransverseMotor.cs" />
+    <Compile Include="LateralMotor.cs" />
+    <Compile Include="SpindleMotor.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
