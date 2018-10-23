@@ -1,10 +1,44 @@
 ﻿using System;
+using System.IO.Ports;
+using System.Threading;
+
 namespace MysteryBoxCleanUp
 {
     public class VerticalMotor
     {
+		public bool isVerCon;
+        bool isSetVerWeld;
+        SerialPort VerPort;
+        //Values for describing locations in the vertical
+        int VerCount;
+        double VerLoc;
+        public double VerMax;
+        public double VerMin;
+        public double VerWeld;//location of the material's surface
+        double VerPlunge;//how far the tool should plunge into the material
+        Mutex SendMutex;
+
 		public VerticalMotor()
         {
+			isVerCon = false;
+			isSetVerWeld = false;
+            VerCount = 0;
+            VerLoc = -1;
+            VerMax = 7.0;
+            VerMin = 1.0;
+            VerWeld = 0;//location of the material's surface
+            VerPlunge = 0;//how far the tool should plunge into the material
+            SendMutex = new Mutex();
+
+			//Set up the port for the vertical motor
+            VerPort = new SerialPort();
+            VerPort.BaudRate = 9600;
+            VerPort.PortName = "COM5";
+            VerPort.DataBits = 8;
+            VerPort.Parity = System.IO.Ports.Parity.None;
+            VerPort.StopBits = System.IO.Ports.StopBits.One;
+            VerPort.Open();
+
         }
 
 		void btnVerRun_Click(object sender, EventArgs e)

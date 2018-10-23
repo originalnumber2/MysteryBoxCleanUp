@@ -3,8 +3,23 @@ namespace MysteryBoxCleanUp
 {
     public class TransverseMotor
     {
+
+		public bool isTraCon;
+        bool isTraOn;
+        //Values for describing locations in the traverse
+        double TraVolt;
+        double TraLoc;
+        public double TraMax;
+        public double TraMin;
+
 		public TransverseMotor()
         {
+			isTraCon = false;
+            isTraOn = false;
+            TraVolt = 0;
+            TraLoc = -2;
+            TraMax = 27;
+            TraMin = 9.0;
         }
 
 		void btnTraCon_Click(object sender, EventArgs e)

@@ -3,8 +3,15 @@ namespace MysteryBoxCleanUp
 {
     public class SpindleMotor
     {
+
+		public bool isSpiCon;
+		bool isSpiOn;
+
         public SpindleMotor()
-        {
+		{
+			isSpiCon = false;
+            isSpiOn = false;
+       	
         }
 
 		void btnSpiCon_Click(object sender, EventArgs e)

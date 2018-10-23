@@ -15,12 +15,27 @@ namespace MysteryBoxCleanUp
 
 		public Modbus()
 		{
-			ModbusPort = new SerialPort();
-			ModbusPort.BaudRate = 38400;
-			ModbusPort.PortName = "COM3";
-			ModbusPort.Parity = System.IO.Ports.Parity.None;
-			ModbusPort.StopBits = System.IO.Ports.StopBits.Two;
-			ModbusPort.Open();
+			try
+			{
+				ModbusPort = new SerialPort();
+				ModbusPort.BaudRate = 38400;
+				ModbusPort.PortName = "COM3";
+				ModbusPort.Parity = System.IO.Ports.Parity.None;
+				ModbusPort.StopBits = System.IO.Ports.StopBits.Two;
+				ModbusPort.Open();
+			}
+			catch (System.IO.IOException e)
+            {
+                MessageBox.Show("Open device manager in windows and the 'Setup Serial Ports' section of the C# code and check the serial port names and settings are correct\n\n" + e.ToString(), "Serial Port Error");
+                Process.GetCurrentProcess().Kill();
+
+            }
+            catch (System.UnauthorizedAccessException e)
+            {
+                MessageBox.Show("Something is wrong? maybe try to restart computer?\n\nHere is some error message stuff...\n\n" + e.ToString(), "Serial Port Error");
+                Process.GetCurrentProcess().Kill();
+            }
+
 		}
 
 		public void WriteModbus()

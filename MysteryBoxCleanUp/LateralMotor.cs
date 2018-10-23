@@ -3,8 +3,24 @@ namespace MysteryBoxCleanUp
 {
     public class LateralMotor
     {
+		public bool isLatCon;
+        bool isLatOn;
+        bool isLatIn;
+        //Values for describing locations in the lateral direction
+        double LatVolt;
+        public double LatLoc;
+        public double LatMax;
+        public double LatMin;
+
         public LateralMotor()
         {
+			isLatCon = false;
+            isLatOn = false;
+            isLatIn = false;
+            LatVolt = 0;
+            LatLoc = -3;
+            LatMax = 3.5;
+            LatMin = 1.5;
         }
 
 		void btnTraCon_Click(object sender, EventArgs e)
