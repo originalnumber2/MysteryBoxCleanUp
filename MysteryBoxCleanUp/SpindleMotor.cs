@@ -1,4 +1,5 @@
 ﻿using System;
+
 namespace MysteryBoxCleanUp
 {
     public class SpindleMotor
@@ -6,11 +7,16 @@ namespace MysteryBoxCleanUp
 
 		public bool isSpiCon;
 		bool isSpiOn;
+        Modbus mod;
+        MessageQueue MesQue;
 
-        public SpindleMotor()
+        public SpindleMotor(Modbus modbus, MessageQueue messageQueue)
 		{
 			isSpiCon = false;
             isSpiOn = false;
+            mod = modbus;
+            MesQue = messageQueue;
+
        	
         }
 
@@ -22,14 +28,14 @@ namespace MysteryBoxCleanUp
                 //int speed = (int)((double)nmSpiRPM.Value * 2.122);
                 int speed = (int)((double)nmSpiRPM.Value * 3.772);
                 //int speed = (int)((double)nmSpiRPM.Value * 3.7022); //Adjusted by BG and CC on 9/7/12
-                if (WriteModbusQueue(1, 2000, 0, true))
+                if (mod.WriteModbusQueue(1, 2000, 0, true))
                 {
                     isSpiCon = true;
                     btnSpiCon.BackColor = Color.Green;
                     boxSpi.Visible = true;
                 }
                 else
-                    WriteMessageQueue("Connection to Spindle Motor Failed");
+                    MesQue.WriteMessageQueue("Connection to Spindle Motor Failed");
             }
             else
             {
@@ -87,7 +93,7 @@ namespace MysteryBoxCleanUp
                 // int speed = (int)(RPM * 2.122);
                 int speed = (int)(RPM * 3.772);
                 //int speed = (int)(RPM * 3.7022); //Adjusted by BG and CC 9/7/12
-                WriteModbusQueue(1, 2002, speed, false);
+                mod.WriteModbusQueue(1, 2002, speed, false);
             }
             else
             {
@@ -97,14 +103,14 @@ namespace MysteryBoxCleanUp
         void StopSpi()//Stop the Spindle Motor
         {
             //Stop the spindle
-            WriteModbusQueue(1, 2000, 0, false);
+            mod.WriteModbusQueue(1, 2000, 0, false);
             isSpiOn = false;
         }
         void StartSpiCW()//Start the spindle motor going clockwise
         {
             if (isSpiCon)
             {
-                WriteModbusQueue(1, 2000, 1, false);
+                mod.WriteModbusQueue(1, 2000, 1, false);
                 isSpiOn = true;
             }
             else
@@ -116,7 +122,7 @@ namespace MysteryBoxCleanUp
         {
             if (isSpiCon)
             {
-                WriteModbusQueue(1, 2000, 3, false);
+                mod.WriteModbusQueue(1, 2000, 3, false);
                 isSpiOn = true;
             }
             else

@@ -17,8 +17,10 @@ namespace MysteryBoxCleanUp
         public double VerWeld;//location of the material's surface
         double VerPlunge;//how far the tool should plunge into the material
         Mutex SendMutex;
+        Modbus mod;
+        MessageQueue MesQue;
 
-		public VerticalMotor()
+        public VerticalMotor(Modbus modbus, MessageQueue messageQueue)
         {
 			isVerCon = false;
 			isSetVerWeld = false;
@@ -38,6 +40,9 @@ namespace MysteryBoxCleanUp
             VerPort.Parity = System.IO.Ports.Parity.None;
             VerPort.StopBits = System.IO.Ports.StopBits.One;
             VerPort.Open();
+
+            mod = modbus;
+            MesQue = messageQueue;
 
         }
 
@@ -121,7 +126,7 @@ namespace MysteryBoxCleanUp
 
             if (VerMessage.Length < 2) //this was edited out
             {
-                WriteMessageQueue("Connection to vertical motor failed");
+                MesQue.WriteMessageQueue("Connection to vertical motor failed");
             }
             else //this was edited out
             {

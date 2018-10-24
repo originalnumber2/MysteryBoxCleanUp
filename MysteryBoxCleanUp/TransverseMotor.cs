@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Windows.Forms;
+
 namespace MysteryBoxCleanUp
 {
     public class TransverseMotor
@@ -11,8 +13,10 @@ namespace MysteryBoxCleanUp
         double TraLoc;
         public double TraMax;
         public double TraMin;
+        Modbus mod;
+        MessageQueue MesQue;
 
-		public TransverseMotor()
+        public TransverseMotor(Modbus modbus, MessageQueue messageQueue)
         {
 			isTraCon = false;
             isTraOn = false;
@@ -20,6 +24,8 @@ namespace MysteryBoxCleanUp
             TraLoc = -2;
             TraMax = 27;
             TraMin = 9.0;
+            mod = modbus;
+            MesQue = messageQueue;
         }
 
 		void btnTraCon_Click(object sender, EventArgs e)
@@ -29,18 +35,18 @@ namespace MysteryBoxCleanUp
                 //attempt to sync with motor
 
                 double hz = ((double)nmTraIPM.Value) * 5.3333;
-                if (WriteModbusQueue(2, 1798, 1, true))
+                if (mod.WriteModbusQueue(2, 1798, 1, true))
                 {
-                    WriteModbusQueue(2, 0x0300, 04, false);//give Traverse motor master frequency control to rs-485
-                    WriteModbusQueue(2, 0x0301, 03, false);//give Traverse motor Source of operation command  to rs-485
-                    WriteModbusQueue(2, 0x0705, 0, false);//set Traverse speed to zero
-                    WriteModbusQueue(2, 0x010D, 0, false);//set Traverse motor direcction (Fwd/Rev) to be controled by rs-485
+                    mod.WriteModbusQueue(2, 0x0300, 04, false);//give Traverse motor master frequency control to rs-485
+                    mod.WriteModbusQueue(2, 0x0301, 03, false);//give Traverse motor Source of operation command  to rs-485
+                    mod.WriteModbusQueue(2, 0x0705, 0, false);//set Traverse speed to zero
+                    mod.WriteModbusQueue(2, 0x010D, 0, false);//set Traverse motor direcction (Fwd/Rev) to be controled by rs-485
                     isTraCon = true;
                     btnTraCon.BackColor = Color.Green;
                     boxTrav.Visible = true;
                 }
                 else
-                    WriteMessageQueue("Connection to Traverse Motor Failed");
+                    MesQue.WriteMessageQueue("Connection to Traverse Motor Failed");
 
 
             }
@@ -89,7 +95,7 @@ namespace MysteryBoxCleanUp
         {
             //if (isTraCon) Dont check to see if its connected safer to just try to stop it incase someting messes up
             {
-                WriteModbusQueue(2, 0x0706, 1, false);
+                mod.WriteModbusQueue(2, 0x0706, 1, false);
                 isTraOn = false;
             }
         }
@@ -101,7 +107,7 @@ namespace MysteryBoxCleanUp
                 //double hz = IPM * 2.135;
                 //double hz = IPM * 4.2433;
                 double hz = IPM * 2.8599;  //Modified by Brian when larger pulley was installed on traverse drive.
-                WriteModbusQueue(2, 1797, ((int)(hz * 10)), false);
+                mod.WriteModbusQueue(2, 1797, ((int)(hz * 10)), false);
 
             }
             else
@@ -113,7 +119,7 @@ namespace MysteryBoxCleanUp
         {
             if (isTraCon)
             {
-                WriteModbusQueue(2, 0x0706, 0x12, false);
+                mod.WriteModbusQueue(2, 0x0706, 0x12, false);
                 isTraOn = true;
             }
             else
@@ -125,7 +131,7 @@ namespace MysteryBoxCleanUp
         {
             if (isTraCon)
             {
-                WriteModbusQueue(2, 0x0706, 0x22, false);
+                mod.WriteModbusQueue(2, 0x0706, 0x22, false);
                 isTraOn = true;
             }
             else

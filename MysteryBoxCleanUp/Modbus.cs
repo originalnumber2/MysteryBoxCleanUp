@@ -58,7 +58,8 @@ namespace MysteryBoxCleanUp
 								 // commands seem to be dropped if sent any faster. J 9/10/2015
 			}
 		}
-		bool WriteModbusQueue(int motor, int address, int data, bool checkreturn)
+
+        internal bool WriteModbusQueue(int motor, int address, int data, bool checkreturn)
 		{
 			//Info for how this talks to the motor diver can be seen in Table 5-1 Communication Mapping Table on the mvx9000 data sheet for the lateral and traverse motor drivers
 			int motorreturned = 0;
