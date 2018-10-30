@@ -84,6 +84,7 @@
     <Compile Include="LateralMotor.cs" />
     <Compile Include="SpindleMotor.cs" />
     <Compile Include="MessageQueue.cs" />
+    <Compile Include="WeldForms.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />

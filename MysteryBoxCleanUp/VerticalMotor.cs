@@ -16,7 +16,6 @@ namespace MysteryBoxCleanUp
         public double VerMin;
         public double VerWeld;//location of the material's surface
         double VerPlunge;//how far the tool should plunge into the material
-        Mutex SendMutex;
         Modbus mod;
         MessageQueue MesQue;
 
@@ -30,7 +29,6 @@ namespace MysteryBoxCleanUp
             VerMin = 1.0;
             VerWeld = 0;//location of the material's surface
             VerPlunge = 0;//how far the tool should plunge into the material
-            SendMutex = new Mutex();
 
 			//Set up the port for the vertical motor
             VerPort = new SerialPort();
