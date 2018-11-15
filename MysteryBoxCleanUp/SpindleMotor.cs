@@ -7,6 +7,7 @@ namespace MysteryBoxCleanUp
 
 		public bool isSpiCon;
 		bool isSpiOn;
+        int SpiRPM, RPMmin, RPMmax;
         Modbus mod;
         MessageQueue MesQue;
 
@@ -14,13 +15,28 @@ namespace MysteryBoxCleanUp
 		{
 			isSpiCon = false;
             isSpiOn = false;
+
+            SpiRPM = 0;
+            RPMmax = 2000;
+            RPMmin = 0;
+
             mod = modbus;
             MesQue = messageQueue;
 
-       	
+            #region Spindle from UDP Control
+            string SpiMessage;
+            bool isSpiCW = true;
+            bool isSpiSpeedCW = true;
+            double SpiSpeedMagnitude = 0;
+            double[] SpiSpeed = new double[2];
+            double SpiSpeedLimit = 2000;
+            ChangeSpiRef(0);
+            StartSpiCW();
+            #endregion
+
         }
 
-		void btnSpiCon_Click(object sender, EventArgs e)
+        void ConnectSpindle()
         {
             if (!isSpiCon)
             {
@@ -41,17 +57,17 @@ namespace MysteryBoxCleanUp
             {
                 StopSpi();//Stop the motor
                 isSpiCon = false;
-                btnSpiCon.BackColor = Color.Red;
-                boxSpi.Visible = false;
             }
         }
-        void nmSpiRPM_ValueChanged(object sender, EventArgs e)
+
+        void ChangeSpindleRPM()
         {
             if (!isSimControl)
             {
                 ChangeSpiRef((double)nmSpiRPM.Value);
             }
         }
+
         void btnSpiRun_Click(object sender, EventArgs e)
         {
             //if (!isSpiCon)

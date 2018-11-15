@@ -2,10 +2,13 @@
 using System.IO.Ports;
 using System.Threading;
 using System.Collections;
+using System.Windows.Forms;
+using System.Diagnostics;
 
 namespace MysteryBoxCleanUp
 {
 	public class Modbus
+    // The Modbus controls the motors via the GUI
 	{
 		Semaphore ModBusQueueSemaphore = new Semaphore(0, 50);
 		Queue ModBusQueue = new Queue();
@@ -13,7 +16,8 @@ namespace MysteryBoxCleanUp
 		Semaphore ModBusQueueMutex = new Semaphore(1, 1);//I know, it is not a mutex, but had some weird issues using mutex across multiple threads so this is my solution to use a sempafore as a mutex
 		Thread ModBusWriteThread;
 
-		public Modbus()
+
+        public Modbus()
 		{
 			try
 			{
@@ -36,7 +40,8 @@ namespace MysteryBoxCleanUp
                 Process.GetCurrentProcess().Kill();
             }
 
-		}
+
+        }
 
 		public void WriteModbus()
 		{

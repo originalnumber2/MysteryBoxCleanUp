@@ -7,6 +7,7 @@ namespace MysteryBoxCleanUp
     {
 
 		public bool isTraCon;
+        public bool TraModbus; //determines if the transverse motor is under modbus control or not
         bool isTraOn;
         //Values for describing locations in the traverse
         double TraVolt;
@@ -20,15 +21,18 @@ namespace MysteryBoxCleanUp
         {
 			isTraCon = false;
             isTraOn = false;
+            TraModbus = true;
             TraVolt = 0;
             TraLoc = -2;
             TraMax = 27;
             TraMin = 9.0;
+
             mod = modbus;
             MesQue = messageQueue;
+
         }
 
-		void btnTraCon_Click(object sender, EventArgs e)
+		void TransverseConnect()
         {
             if (!isTraCon)
             {
@@ -60,6 +64,7 @@ namespace MysteryBoxCleanUp
                 boxTrav.Visible = false;
             }
         }
+
         void btnTraRun_Click(object sender, EventArgs e)
         {
             if (!isTraCon)
@@ -70,6 +75,7 @@ namespace MysteryBoxCleanUp
                 StartTraFor();
             }
         }
+
         void btnTraRev_Click(object sender, EventArgs e)
         {
             if (!isTraCon)
@@ -80,10 +86,12 @@ namespace MysteryBoxCleanUp
                 StartTraRev();
             }
         }
+
         void btnTraStop_Click(object sender, EventArgs e)
         {
             StopTra();
         }
+
         void nmTraIPM_ValueChanged(object sender, EventArgs e)
         {
             if (!isSimControl)
@@ -91,6 +99,7 @@ namespace MysteryBoxCleanUp
                 ChangeTraRef((double)nmTraIPM.Value);
             }
         }
+
         void StopTra()//Stop the traverse Motor
         {
             //if (isTraCon) Dont check to see if its connected safer to just try to stop it incase someting messes up
@@ -99,7 +108,8 @@ namespace MysteryBoxCleanUp
                 isTraOn = false;
             }
         }
-        void ChangeTraRef(double IPM)//Change the Traverse Reference
+
+        void ChangeTraRefModbus(double IPM)//Change the Traverse Reference
         {
             if (isTraCon)
             {
@@ -115,7 +125,8 @@ namespace MysteryBoxCleanUp
                 StopTra();
             }
         }
-        void StartTraFor()//Start the traverse going forward
+
+        void StartTraForModbus()//Start the traverse going forward
         {
             if (isTraCon)
             {
@@ -127,7 +138,8 @@ namespace MysteryBoxCleanUp
                 StopTra();
             }
         }
-        void StartTraRev()//Start the traverse going in reverse
+
+        void StartTraRevModbus()//Start the traverse going in reverse
         {
             if (isTraCon)
             {

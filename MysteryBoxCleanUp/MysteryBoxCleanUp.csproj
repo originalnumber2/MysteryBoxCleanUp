@@ -85,6 +85,9 @@
     <Compile Include="SpindleMotor.cs" />
     <Compile Include="MessageQueue.cs" />
     <Compile Include="WeldForms.cs" />
+    <Compile Include="UDPCom.cs" />
+    <Compile Include="Controller.cs" />
+    <Compile Include="MotorController.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />

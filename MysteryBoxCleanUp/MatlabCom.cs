@@ -6,6 +6,7 @@ using System.Windows.Forms;
 namespace MysteryBoxCleanUp
 {
     public class MatlabCom
+    //Manages communicating with the matlab terminal
     {
 		Semaphore MatlabQueueSemaphore = new Semaphore(0, 50);
         Queue MatlabQueue = new Queue();
@@ -17,7 +18,7 @@ namespace MysteryBoxCleanUp
 		{
 			MLApp.MLApp matlab = new MLApp.MLApp();//Start matlab
 			MatlabExecute("load_system('simulink')");
-			while (true)
+            while (true) //Infinate Loop look into this. Should run in its own thread
 			{
 				try
 				{

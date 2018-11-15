@@ -6,21 +6,25 @@ namespace MysteryBoxCleanUp
 {
     public class VerticalMotor
     {
-		public bool isVerCon;
+		public bool isVerCon, isVerContinous;
         bool isSetVerWeld;
-        SerialPort VerPort;
+        public SerialPort VerPort;
         //Values for describing locations in the vertical
-        int VerCount;
+        int VerCount, verTurns;
         double VerLoc;
         public double VerMax;
         public double VerMin;
         public double VerWeld;//location of the material's surface
         double VerPlunge;//how far the tool should plunge into the material
+
         Modbus mod;
         MessageQueue MesQue;
+        
 
         public VerticalMotor(Modbus modbus, MessageQueue messageQueue)
         {
+
+            //need to do something about the modbus UDP problem and bring together  
 			isVerCon = false;
 			isSetVerWeld = false;
             VerCount = 0;
@@ -29,6 +33,8 @@ namespace MysteryBoxCleanUp
             VerMin = 1.0;
             VerWeld = 0;//location of the material's surface
             VerPlunge = 0;//how far the tool should plunge into the material
+
+            isVerContinous = true;
 
 			//Set up the port for the vertical motor
             VerPort = new SerialPort();
@@ -42,33 +48,48 @@ namespace MysteryBoxCleanUp
             mod = modbus;
             MesQue = messageQueue;
 
+            #region Vertical from UDP
+            string VerMessage;
+            bool isVerDown = true;
+            double VerSpeedMagnitude = 0;
+            double[] VerSpeed = new double[2];
+            double VerSpeedLimit = 5;
+            double VerAccel = 10;
+            double VerSpeedMinimum = 0.00001;//from motor guide
+            VerMessage = "E MC ";
+            VerPort.Write(VerMessage);
+            #endregion
+
+            int verTurns = 0;
+
+
+
         }
 
-		void btnVerRun_Click(object sender, EventArgs e)
+        void RaiseTable()
         {
             String VerMessage;
-            int VerPos = (int)nmVerTurns.Value;
             VerMessage = String.Empty;
              
-            if (rbVerContinuous.Checked)
+            if (isVerContinous)
             {
                 VerMessage = "E MC H";
                 VerMessage += "+";
 
-                VerMessage += "A" + nmVerAcc.Value.ToString() + " V" + nmVerVel.Value.ToString() + " G\r";
+                VerMessage += "A" + VerAccel.ToString() + " V" + nmVerVel.Value.ToString() + " G\r";
             }
             else
             {
                 VerMessage = "E MN A" + nmVerAcc.Value.ToString() + " V" + nmVerVel.Value.ToString() + " D";
-                VerMessage += VerPos.ToString() + " G\r";
+                VerMessage += verTurns.ToString() + " G\r";
             }
 
             VerPort.Write(VerMessage);
         }
-        void btnVerLowerStage_Click(object sender, EventArgs e)
+
+        void LowerStage(object sender, EventArgs e)
         {
             String VerMessage;
-            int VerPos = (int)nmVerTurns.Value;
             VerMessage = String.Empty;
 
             if (rbVerContinuous.Checked)
@@ -81,12 +102,12 @@ namespace MysteryBoxCleanUp
             {
                 VerMessage = "E MN A" + nmVerAcc.Value.ToString() + " V" + nmVerVel.Value.ToString() + " D";
                 VerMessage += "-";
-                VerMessage += VerPos.ToString() + " G\r";
+                VerMessage += verTurns.ToString() + " G\r";
             }
 
             VerPort.Write(VerMessage);
         }
-        void btnVerCon_Click(object sender, EventArgs e)
+        void VerticalConnectToggle()
         {
             if (!isVerCon)//connect to vertical motor
             {
@@ -97,10 +118,17 @@ namespace MysteryBoxCleanUp
                 VerDisconnect();
             }
         }
-        void btnVerStop_Click(object sender, EventArgs e)
+
+        void VerticalStop()
         {
             VerPort.Write("E S\r");
         }
+
+        void StopVer() //Stop the vertical Motor
+        {
+            VerPort.Write("S\r");
+        }
+
         void VerConnect()
         {
             string VerMessage;
@@ -145,6 +173,7 @@ namespace MysteryBoxCleanUp
                 }
             }
         }//Connect to the Vertical Motor
+
         void VerDisconnect()
         {
             //Turn off the motor for starters
@@ -158,9 +187,7 @@ namespace MysteryBoxCleanUp
             boxVer.Visible = false;
             //btnAutoZero.Enabled = false;
         }//Disconect and turn off the Vertical Motor
-        void StopVer() //Stop the vertical Motor
-        {
-            VerPort.Write("S\r");
-        }
+
+
     }
 }

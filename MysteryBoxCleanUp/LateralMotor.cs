@@ -6,6 +6,7 @@ namespace MysteryBoxCleanUp
     public class LateralMotor
     {
 		public bool isLatCon;
+        public bool LatModbus; // Determines if the motor is under modbus control or not.
         bool isLatOn;
         bool isLatIn;
         //Values for describing locations in the lateral direction
@@ -21,12 +22,16 @@ namespace MysteryBoxCleanUp
 			isLatCon = false;
             isLatOn = false;
             isLatIn = false;
+            LatModbus = true;
             LatVolt = 0;
             LatLoc = -3;
             LatMax = 3.5;
             LatMin = 1.5;
+
             mod = modbus;
             MesQue = messageQueue;
+
+
         }
 
 		void btnTraCon_Click(object sender, EventArgs e)
