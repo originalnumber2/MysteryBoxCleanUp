@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Net;
 using System.Net.Sockets;
+using System.Threading;
 
 namespace MysteryBoxCleanUp
 {
@@ -15,16 +16,8 @@ namespace MysteryBoxCleanUp
         IPEndPoint IPSendtoSimulink, IPRecivefromSimulink, IPSendtoSimulinkCommands;
         public int SoftStop;
 
-        // inheriting motors
-        SpindleMotor spi;
-        LateralMotor lat;
-        TransverseMotor trans;
-        VerticalMotor vert;
 
-        //enabling messaging queues.
-        MessageQueue mesQue;
-
-        public UDPCom(SpindleMotor spindle, LateralMotor lateral, TransverseMotor transverse, VerticalMotor vertical, MessageQueue messagequeue)
+        public UDPCom()
         {
             isSimControl = false;
             isSendUDP = false;
@@ -40,12 +33,6 @@ namespace MysteryBoxCleanUp
             SimulinkSendUDP.Connect(IPSendtoSimulink);
             SimulinkReviceUDP.Connect(IPRecivefromSimulink);
 
-            spi = spindle;
-            lat = lateral;
-            trans = transverse;
-            vert = vertical;
-
-            mesQue = messagequeue;
         }
 
         public void SimulinkReciveLoop()
@@ -88,8 +75,9 @@ namespace MysteryBoxCleanUp
             #endregion
             VerSpeed[0] = -99.9;
             SpiSpeed[0] = -99.9;
+            //Why is analog control started twice? - adam
             AnalogControl();
-            while (!isAbort && !isSimDone && !isAlarm)
+            while (!isAbort && !isSimDone && !isAlarm) // checking to see that system is good move this up a few levels
             {
                 //Try to recieve data
                 if (SimulinkReviceUDP.Available > 0)
@@ -196,40 +184,48 @@ namespace MysteryBoxCleanUp
 
 
         }
+
         private void StartUDP()
         {
+            // attempts to close any UDP connections
             isSendUDP = false;
             SimulinkSendUDP.Close();
             Thread.Sleep(100);
+            //Starts a new client 
             SimulinkSendUDP = new UdpClient(12006);
             SimulinkSendUDP.Connect(IPSendtoSimulink);
             Thread.Sleep(100);
             isSendUDP = true;
-
         }
-        private void AnalogControl()
-        {
-            Thread.Sleep(500);
-            WriteModbusQueue(2, 0x0300, 02, false);//set source of master frequency to be from analog input for Traverse motor
-            WriteModbusQueue(2, 0x010D, 15, false);//set Traverse motor direcction (Fwd/Rev) to be controled digital input terminal DI5
-            WriteModbusQueue(2, 0x0706, 0x02, false);//set Traverse motor to run, but not to set dirrection
-                                                     //30.02 0.0 minimum reverence value 0 to 10 Volts
-                                                     //30.02 10.0 maximum reverence value 0 to 10 Volts
-                                                     //30.03 00 Invert Reverence signal, not inverted
-                                                     //30.07 00 potentiometer offset 0.0-100.0, 0 offset
-                                                     //30.10 00 potentiometer Direction, 00 do not have voltage value control direction
 
-            Thread.Sleep(500);
-            WriteModbusQueue(3, 0x0300, 02, false);//set source of master frequency to be from analog input for lateral motor
-            WriteModbusQueue(3, 0x010D, 15, false);//set lateral motor direcction (Fwd/Rev) to be controled digital input terminal DI5
-            WriteModbusQueue(3, 0x0706, 0x02, false);//set lateral motor to run, but not to set dirrection
-            Thread.Sleep(500);
-        }
+
+        // This could go under modbus or controller
+        //private void StartAnalogControl()
+        //{
+        //    Thread.Sleep(500);
+        //    WriteModbusQueue(2, 0x0300, 02, false);//set source of master frequency to be from analog input for Traverse motor
+        //    WriteModbusQueue(2, 0x010D, 15, false);//set Traverse motor direcction (Fwd/Rev) to be controled digital input terminal DI5
+        //    WriteModbusQueue(2, 0x0706, 0x02, false);//set Traverse motor to run, but not to set dirrection
+        //                                             //30.02 0.0 minimum reverence value 0 to 10 Volts
+        //                                             //30.02 10.0 maximum reverence value 0 to 10 Volts
+        //                                             //30.03 00 Invert Reverence signal, not inverted
+        //                                             //30.07 00 potentiometer offset 0.0-100.0, 0 offset
+        //                                             //30.10 00 potentiometer Direction, 00 do not have voltage value control direction
+
+        //    Thread.Sleep(500);
+        //    WriteModbusQueue(3, 0x0300, 02, false);//set source of master frequency to be from analog input for lateral motor
+        //    WriteModbusQueue(3, 0x010D, 15, false);//set lateral motor direcction (Fwd/Rev) to be controled digital input terminal DI5
+        //    WriteModbusQueue(3, 0x0706, 0x02, false);//set lateral motor to run, but not to set dirrection
+        //    Thread.Sleep(500);
+        //}
+
+        //button handlers. Not sure where to put them yet
         private void simulinkControlToolStripMenuItem_Click(object sender, EventArgs e)
         {
             SoftStop = 1;
             ControlThreadStarter(SimulinkReciveLoop, "Simulink Recieve");
         }
+
         private void sendUdpToolStripMenuItem_Click(object sender, EventArgs e)
         {
             StartUDP();

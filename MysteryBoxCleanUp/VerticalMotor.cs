@@ -6,37 +6,46 @@ namespace MysteryBoxCleanUp
 {
     public class VerticalMotor
     {
-		public bool isVerCon, isVerContinous;
+        public bool isVerConnected, isVerContinous;
         bool isSetVerWeld;
-        public SerialPort VerPort;
+        SerialPort VerPort;
         //Values for describing locations in the vertical
         int VerCount, verTurns;
-        double VerLoc;
-        public double VerMax;
-        public double VerMin;
-        public double VerWeld;//location of the material's surface
+        double VerLoc; //   current welder Z location
+        double VerWeld;//location of the material's surface
         double VerPlunge;//how far the tool should plunge into the material
+        double VerSpeed; //two iteration history of the vertical motor speed.
+        double VerSpeedMax, VerAccel, VerSpeedMin;
+        bool isVerDown;
+        private double epsilon;
 
-        Modbus mod;
-        MessageQueue MesQue;
-        
-
-        public VerticalMotor(Modbus modbus, MessageQueue messageQueue)
+        public VerticalMotor()
         {
 
-            //need to do something about the modbus UDP problem and bring together  
-			isVerCon = false;
-			isSetVerWeld = false;
-            VerCount = 0;
-            VerLoc = -1;
-            VerMax = 7.0;
-            VerMin = 1.0;
-            VerWeld = 0;//location of the material's surface
-            VerPlunge = 0;//how far the tool should plunge into the material
-
+            //need to do something about the modbus UDP problem and bring together
             isVerContinous = true;
+            isVerConnected = false;
+            isSetVerWeld = false; //I dont know what this is used for
+            VerCount = 0; //Number of rotations to preform
+            verTurns = 0;
+            epsilon = 0.001;
 
-			//Set up the port for the vertical motor
+            #region Speed Control of the Verticle motor
+            VerSpeed = -99.9;
+            VerSpeedMax = 5;
+            VerAccel = 10;
+            VerSpeedMin = 0.00001;//from motor guide
+            isVerDown = true; // is the vertical motor down
+            # endregion
+
+            #region Position Control of the Verticle axis
+            VerLoc = -1; //Current Verticle Locations
+            VerWeld = 0; //location of the material's surface
+            VerPlunge = 0; //how far the tool should plunge into the material
+            # endregion 
+
+
+            #region Setting up the serial communication port
             VerPort = new SerialPort();
             VerPort.BaudRate = 9600;
             VerPort.PortName = "COM5";
@@ -44,72 +53,69 @@ namespace MysteryBoxCleanUp
             VerPort.Parity = System.IO.Ports.Parity.None;
             VerPort.StopBits = System.IO.Ports.StopBits.One;
             VerPort.Open();
-
-            mod = modbus;
-            MesQue = messageQueue;
-
-            #region Vertical from UDP
-            string VerMessage;
-            bool isVerDown = true;
-            double VerSpeedMagnitude = 0;
-            double[] VerSpeed = new double[2];
-            double VerSpeedLimit = 5;
-            double VerAccel = 10;
-            double VerSpeedMinimum = 0.00001;//from motor guide
-            VerMessage = "E MC ";
-            VerPort.Write(VerMessage);
             #endregion
-
-            int verTurns = 0;
-
 
 
         }
+
+        //Setter for the Vertical Speed
+        internal string SetSpeed(double speed)
+        {
+            double VerSpeedMagnitude = Math.Abs(speed);
+            if (VerSpeedMagnitude > VerSpeedMax)
+                VerSpeedMagnitude = VerSpeedMax;
+            if (VerSpeedMagnitude < VerSpeedMin)
+                VerSpeedMagnitude = VerSpeedMin;
+            VerSpeed = VerSpeedMagnitude;
+            return "Setting Vertical Speed to " + VerSpeedMagnitude.ToString();
+        }
+
 
         void RaiseTable()
         {
             String VerMessage;
             VerMessage = String.Empty;
-             
+
             if (isVerContinous)
             {
                 VerMessage = "E MC H";
                 VerMessage += "+";
 
-                VerMessage += "A" + VerAccel.ToString() + " V" + nmVerVel.Value.ToString() + " G\r";
+                VerMessage += "A" + VerAccel + " V" + VerSpeed.ToString() + " G\r";
             }
             else
             {
-                VerMessage = "E MN A" + nmVerAcc.Value.ToString() + " V" + nmVerVel.Value.ToString() + " D";
+                VerMessage = "E MN A" + VerAccel + " V" + VerSpeed.ToString() + " D";
                 VerMessage += verTurns.ToString() + " G\r";
             }
 
             VerPort.Write(VerMessage);
         }
 
-        void LowerStage(object sender, EventArgs e)
+        void LowerStage()
         {
             String VerMessage;
             VerMessage = String.Empty;
 
-            if (rbVerContinuous.Checked)
+            if (isVerContinous)
             {
                 VerMessage = "E MC H";
                 VerMessage += "-";
-                VerMessage += "A" + nmVerAcc.Value.ToString() + " V" + nmVerVel.Value.ToString() + " G\r";
+                VerMessage += "A" + VerAccel + " V" + VerSpeed.ToString() + " G\r";
             }
             else
             {
-                VerMessage = "E MN A" + nmVerAcc.Value.ToString() + " V" + nmVerVel.Value.ToString() + " D";
+                VerMessage = "E MN A" + VerAccel + " V" + VerSpeed.ToString() + " D";
                 VerMessage += "-";
                 VerMessage += verTurns.ToString() + " G\r";
             }
 
             VerPort.Write(VerMessage);
         }
+
         void VerticalConnectToggle()
         {
-            if (!isVerCon)//connect to vertical motor
+            if (!isVerConnected)//connect to vertical motor
             {
                 VerConnect();
             }
@@ -119,7 +125,7 @@ namespace MysteryBoxCleanUp
             }
         }
 
-        void VerticalStop()
+        void VerticalStop() // Used with the stop verticle button I dont know what the E does
         {
             VerPort.Write("E S\r");
         }
@@ -129,9 +135,10 @@ namespace MysteryBoxCleanUp
             VerPort.Write("S\r");
         }
 
-        void VerConnect()
+        //Connect to the Vertical Motor
+        internal string VerConnect()
         {
-            string VerMessage;
+            string VerMessage, responce;
             //Clear out port
             VerPort.ReadExisting(); //this was edited out
 
@@ -152,42 +159,72 @@ namespace MysteryBoxCleanUp
 
             if (VerMessage.Length < 2) //this was edited out
             {
-                MesQue.WriteMessageQueue("Connection to vertical motor failed");
+                responce = "Connection to vertical motor failed";
             }
             else //this was edited out
             {
                 //Update the boolean
-                isVerCon = true;
+                isVerConnected = true;
+                responce = "Connected to vertical motor";
 
-                //Show the connection label
-                btnVerCon.BackColor = System.Drawing.Color.Green;
-
-
-                //Show the vertical controls
-                boxVer.Visible = true;
-
-                //check to see if autozero should be allowed
-                // if (isSenCon && isStrainCon) //IsDynCon removed Brian
-                {
-                    //btnAutoZero.Enabled = true;
-                }
             }
-        }//Connect to the Vertical Motor
+            return responce;
+        }
 
-        void VerDisconnect()
+        //Disconect and turn off the Vertical Motor
+        internal string VerDisconnect()
         {
             //Turn off the motor for starters
             VerPort.Write("S\r");
             Thread.Sleep(300);
             VerPort.Write("OFF\r");
-            isVerCon = false;
+            isVerConnected = false;
             //show that vertical motor is disconected on gui
-            btnVerCon.BackColor = System.Drawing.Color.Red;
-            btnVerCon.ForeColor = System.Drawing.Color.White;
-            boxVer.Visible = false;
-            //btnAutoZero.Enabled = false;
-        }//Disconect and turn off the Vertical Motor
+            return "Disconnected from vertical motor";
+        }
+
+        internal string BeginWeldControl()
+        {
+            VerPort.Write("E MC"); //I dont know why this is needed;
+            VerSpeedMax = 5;
+            VerAccel = 10;
+            VerSpeedMin = 0.00001;//from motor guide
+            return "Vertical Motor ready for weld";
+        }
+
+        internal string UDPVerticalMove(double speed)
+        {
+            string VerMessage;
+            double VerSpeedMagnitude = Math.Abs(speed);
+
+            if (Math.Abs(VerSpeed - speed) > epsilon)
+            {
+                isVerDown = trueifpositive(VerSpeed);
+                VerSpeedMagnitude = Math.Abs(VerSpeed);
+                SetSpeed(speed);
+                VerMessage = "H";
+                if (isVerDown)
+                    VerMessage += "+";
+                else
+                    VerMessage += "-";
+
+                VerMessage += "A" + VerAccel.ToString("F2") + " V" + VerSpeedMagnitude.ToString("F5") + " G\r";
+                VerPort.Write(VerMessage);
+                return VerMessage;
+            }
+            return "";
+        }
+
+        bool trueifpositive(double n)
+        {
+            if (n >= 0)
+                return true;
+            else
+                return false;
+        }
 
 
     }
 }
+
+
