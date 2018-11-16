@@ -31,7 +31,7 @@ namespace MysteryBoxCleanUp
             lateralMotor = new LateralMotor();
 
             //creating the spindle motor, it communicatates over Modbus
-            spindleMotor = new SpindleMotor();
+            spindleMotor = new SpindleMotor(modbus);
         }
 
         internal string MoveVertical()
@@ -156,6 +156,13 @@ namespace MysteryBoxCleanUp
                 returnMes = returnMes + spindleMotor.connect();
             }
             return returnMes;
+        }
+
+        //Toggles Control between UDP and Modbus Control
+        //placeholder
+        internal String ToggleControl()
+        {
+            return "";
         }
 
     }

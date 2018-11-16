@@ -2,148 +2,221 @@
 
 namespace MysteryBoxCleanUp
 {
+    // Simplificatin and lubrication control is needed. if the spindle is going to fast the lube is required.
     public class SpindleMotor
     {
 
-		public bool isSpiCon;
-		bool isSpiOn;
-        int SpiRPM, RPMmin, RPMmax;
-        Modbus mod;
-        MessageQueue MesQue;
+        Modbus mbus;
 
-        public SpindleMotor(Modbus modbus, MessageQueue messageQueue)
-		{
-			isSpiCon = false;
+        public bool isSpiConnected, isSimulinkControl;
+        bool isSpiOn;
+        double SpiRPM, RPMmin, RPMmax;
+
+        string SpiMessage;
+        bool isSpiCW;
+        bool isSpiSpeedCW;
+        double SpiSpeedMagnitude;
+        double[] SpiSpeed =;
+        double SpiSpeedLimit;
+
+        public SpindleMotor(Modbus modbus)
+        {
+            isSpiConnected = false;
             isSpiOn = false;
+            isSimulinkControl = false;
 
             SpiRPM = 0;
             RPMmax = 2000;
             RPMmin = 0;
 
-            mod = modbus;
-            MesQue = messageQueue;
+            mbus = modbus;
 
             #region Spindle from UDP Control
-            string SpiMessage;
-            bool isSpiCW = true;
-            bool isSpiSpeedCW = true;
-            double SpiSpeedMagnitude = 0;
-            double[] SpiSpeed = new double[2];
-            double SpiSpeedLimit = 2000;
+            isSpiCW = true;
+            isSpiSpeedCW = true;
+            SpiSpeedMagnitude = 0;
+            SpiSpeed = new double[2];
             ChangeSpiRef(0);
             StartSpiCW();
             #endregion
 
         }
 
-        void ConnectSpindle()
+        internal void ConnectionToggle()
         {
-            if (!isSpiCon)
+            if (isSpiConnected)
+                DisconnectSpindle();
+            else
+                ConnectSpindle();
+        }
+
+
+        internal string ConnectSpindle()
+        {
+            string message = "";
+            if (!isSpiConnected)
             {
                 //attempt to sync with motor
                 //int speed = (int)((double)nmSpiRPM.Value * 2.122);
-                int speed = (int)((double)nmSpiRPM.Value * 3.772);
+                //int speed = (int)((double)nmSpiRPM.Value * 3.772);
                 //int speed = (int)((double)nmSpiRPM.Value * 3.7022); //Adjusted by BG and CC on 9/7/12
-                if (mod.WriteModbusQueue(1, 2000, 0, true))
+                if (mbus.WriteModbusQueue(1, 2000, 0, true))
                 {
-                    isSpiCon = true;
-                    btnSpiCon.BackColor = Color.Green;
-                    boxSpi.Visible = true;
+                    isSpiConnected = true;
+                    message = "Spindle Connected";
                 }
                 else
-                    MesQue.WriteMessageQueue("Connection to Spindle Motor Failed");
+                    isSpiConnected = false;
+                message = "Spindle Failed to connect";
             }
             else
             {
                 StopSpi();//Stop the motor
-                isSpiCon = false;
+                isSpiConnected = false;
+                message = "Spindle Disconnected";
             }
+            return message;
         }
 
-        void ChangeSpindleRPM()
+        internal String DisconnectSpindle()
         {
-            if (!isSimControl)
-            {
-                ChangeSpiRef((double)nmSpiRPM.Value);
-            }
+            StopSpi();//Stop the motor
+            isSpiConnected = false;
+            return "Spindle Disconnected";
         }
 
-        void btnSpiRun_Click(object sender, EventArgs e)
+        internal string SpindleRun(double height)
         {
-            //if (!isSpiCon)
-            //{
-            //    WriteMessageQueue("Spindle not connected");
-            //}
-            //else if (!isPressure)
-            //{
-            //    MessageBox.Show("No Pressure");
-            //}
-            //else if (!isLubOn)
-            //{
-            //    MessageBox.Show("The Lubricator is off");
-            //}
-            //else
+            string message = "";
             {
                 //if vertical is high slow it down
-                if (nmVerVel.Value > 1)
-                    nmVerVel.Value = 1;
+                if (height > 1)
+                    height = 1;
 
-                if (rbSpiCW.Checked)
+                if (isSpiCW)
+                {
                     StartSpiCW();
+                    message = "Spindle was started CW with RPM " + SpiRPM.ToString();
+                }
                 else
+                {
                     StartSpiCCW();
+                    message = "Spindle was started CcW with RPM " + SpiRPM.ToString();
+                }
+
             }
 
+            return message;
         }
-        private void btnSpiStop_Click(object sender, EventArgs e)
+
+
+        internal string ChangeSpiRef(double RPM) //Change the Spindle Reference
         {
-            StopSpi();
-        }
-        void ChangeSpiRef(double RPM) //Change the Spindle Reference
-        {
-            if (isSpiCon)
+            string message = "";
+            if (isSpiConnected)
             {
                 //old pulley speed
                 // int speed = (int)((double)nmSpiRPM.Value * 1.58);
 
                 // int speed = (int)(RPM * 2.122);
-                int speed = (int)(RPM * 3.772);
+                SpiRPM = (int)(RPM * 3.772);
                 //int speed = (int)(RPM * 3.7022); //Adjusted by BG and CC 9/7/12
-                mod.WriteModbusQueue(1, 2002, speed, false);
+                mbus.WriteModbusQueue(1, 2002, SpiRPM, false);
+                message = "Spindle RPM was changed to " + SpiRPM.ToString();
             }
             else
             {
                 StopSpi();
+                message = "Spindle was Stopped";
+
             }
+            return message;
         }
-        void StopSpi()//Stop the Spindle Motor
+
+        internal string StopSpi()//Stop the Spindle Motor
         {
             //Stop the spindle
-            mod.WriteModbusQueue(1, 2000, 0, false);
+            mbus.WriteModbusQueue(1, 2000, 0, false);
             isSpiOn = false;
+            return "Spindle was stopped."
         }
-        void StartSpiCW()//Start the spindle motor going clockwise
+
+        internal string StartSpiCW()//Start the spindle motor going clockwise
         {
-            if (isSpiCon)
+            String message = "";
+            if (isSpiConnected)
             {
-                mod.WriteModbusQueue(1, 2000, 1, false);
+                mbus.WriteModbusQueue(1, 2000, 1, false);
                 isSpiOn = true;
+                message = "Spindle was started CCW with RPM " + SpiRPM.ToString();
             }
             else
             {
                 StopSpi();
+                message = "Spindle was stopped, spindle not connected";
             }
+            return message;
         }
+
         void StartSpiCCW()//Start the spindle motor going counter-clockwise
         {
-            if (isSpiCon)
+            if (isSpiConnected)
             {
-                mod.WriteModbusQueue(1, 2000, 3, false);
+                mbus.WriteModbusQueue(1, 2000, 3, false);
                 isSpiOn = true;
             }
             else
             {
                 StopSpi();
+            }
+        }
+
+        internal void SpindleUDPControl()
+        {
+            if (isSpiSpeedCW)
+            {
+                StartSpiCW();
+                isSpiCW = true;
+            }
+            else
+            {
+                StartSpiCCW();
+                isSpiCW = false;
+            }
+            SpiSpeed[0] = -99.9;
+            SpiSpeed[1] = SpiSpeed[0];
+            SpiSpeed[0] = BitConverter.ToDouble(RecieveBytes, 8);
+            if (SpiSpeed[0] != SpiSpeed[1])
+            {
+                isSpiSpeedCW = trueifpositive(SpiSpeed[0]);
+                SpiSpeedMagnitude = Math.Abs(SpiSpeed[0]);
+                if (SpiSpeedMagnitude > 100)
+                    isLubWanted = true;
+                else
+                    isLubWanted = false;
+                //Limit Spindle speed
+                if (SpiSpeedMagnitude > SpiSpeedLimit) SpiSpeedMagnitude = SpiSpeedLimit;
+                if (isSpiSpeedCW)
+                {
+                    if (!isSpiCW)
+                    {
+                        StartSpiCW();
+                        isSpiCW = true;
+                    }
+                    SpiMessage = "CW";
+                }
+                else
+                {
+                    if (isSpiCW)
+                    {
+                        StartSpiCCW();
+                        isSpiCW = false;
+                    }
+                    SpiMessage = "CCW";
+                }
+                ChangeSpiRef(SpiSpeedMagnitude);
+                WriteMessageQueue("Spi set to:" + SpiSpeedMagnitude.ToString("F0") + SpiMessage);
+
             }
         }
     }

@@ -7,7 +7,7 @@ namespace MysteryBoxCleanUp
     {
 
 		public bool isTraCon;
-        public bool TraModbus; //determines if the transverse motor is under modbus control or not
+        public bool isSimulinkControl; //determines if the transverse motor is under modbus control or not
         bool isTraOn;
         //Values for describing locations in the traverse
         double TraVolt;
@@ -15,20 +15,19 @@ namespace MysteryBoxCleanUp
         public double TraMax;
         public double TraMin;
         Modbus mod;
-        MessageQueue MesQue;
 
-        public TransverseMotor(Modbus modbus, MessageQueue messageQueue)
+        public TransverseMotor(Modbus modbus)
         {
 			isTraCon = false;
             isTraOn = false;
-            TraModbus = true;
+            isSimulinkControl = false;
             TraVolt = 0;
             TraLoc = -2;
             TraMax = 27;
             TraMin = 9.0;
 
             mod = modbus;
-            MesQue = messageQueue;
+
 
         }
 

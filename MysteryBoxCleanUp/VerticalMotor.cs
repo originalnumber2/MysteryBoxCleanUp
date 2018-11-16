@@ -6,7 +6,9 @@ namespace MysteryBoxCleanUp
 {
     public class VerticalMotor
     {
-        public bool isVerConnected, isVerContinous;
+
+        //getters and setters need to be generated for setting max mins and acceleration
+        public bool isVerConnected, isVerContinous, isSimulinkControl;
         bool isSetVerWeld;
         SerialPort VerPort;
         //Values for describing locations in the vertical
@@ -26,6 +28,7 @@ namespace MysteryBoxCleanUp
             isVerContinous = true;
             isVerConnected = false;
             isSetVerWeld = false; //I dont know what this is used for
+            isSimulinkControl = false; // Determine if simulink control is on Might want to bubble this up to a higher class
             VerCount = 0; //Number of rotations to preform
             verTurns = 0;
             epsilon = 0.001;
@@ -92,7 +95,7 @@ namespace MysteryBoxCleanUp
             VerPort.Write(VerMessage);
         }
 
-        void LowerStage()
+        void LowerTable()
         {
             String VerMessage;
             VerMessage = String.Empty;
@@ -113,16 +116,13 @@ namespace MysteryBoxCleanUp
             VerPort.Write(VerMessage);
         }
 
-        void VerticalConnectToggle()
+        internal string VerticalConnectToggle()
         {
             if (!isVerConnected)//connect to vertical motor
             {
-                VerConnect();
+                return VerConnect();
             }
-            else//disconnect motor
-            {
-                VerDisconnect();
-            }
+                return VerDisconnect();
         }
 
         void VerticalStop() // Used with the stop verticle button I dont know what the E does
@@ -219,7 +219,6 @@ namespace MysteryBoxCleanUp
         {
             if (n >= 0)
                 return true;
-            else
                 return false;
         }
 
