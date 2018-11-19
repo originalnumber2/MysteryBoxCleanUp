@@ -25,13 +25,13 @@ namespace MysteryBoxCleanUp
             verticalMotor = new VerticalMotor();
 
             //creating the transverse motor, it communicatates over UDP or Modbus
-            transverseMotor = new TransverseMotor();
+            transverseMotor = new TransverseMotor(this);
 
             //creating the Lateral motor, it communicatates over UDP or Modbus
-            lateralMotor = new LateralMotor();
+            lateralMotor = new LateralMotor(this);
 
             //creating the spindle motor, it communicatates over Modbus
-            spindleMotor = new SpindleMotor(modbus);
+            spindleMotor = new SpindleMotor(this);
         }
 
         internal string MoveVertical()

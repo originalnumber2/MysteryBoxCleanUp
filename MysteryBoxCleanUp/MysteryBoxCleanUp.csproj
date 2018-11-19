@@ -88,6 +88,8 @@
     <Compile Include="UDPCom.cs" />
     <Compile Include="Controller.cs" />
     <Compile Include="MotorController.cs" />
+    <Compile Include="ModbusInt.cs" />
+    <Compile Include="UDPInt.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />

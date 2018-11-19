@@ -6,17 +6,17 @@ namespace MysteryBoxCleanUp
     public class TransverseMotor
     {
 
-		public bool isTraCon;
+        public bool IsTraCon { get; set; }
         public bool isSimulinkControl; //determines if the transverse motor is under modbus control or not
-        bool isTraOn;
+        bool IsTraOn { get; set; };
         //Values for describing locations in the traverse
         double TraVolt;
         double TraLoc;
-        public double TraMax;
-        public double TraMin;
-        Modbus mod;
+        public double TraMax { get; set; };
+        public double TraMin { get; set; };
+        MotorController controller;
 
-        public TransverseMotor(Modbus modbus)
+        public TransverseMotor(MotorController motorController)
         {
 			isTraCon = false;
             isTraOn = false;
@@ -26,42 +26,44 @@ namespace MysteryBoxCleanUp
             TraMax = 27;
             TraMin = 9.0;
 
-            mod = modbus;
+            controller = motorController;
 
 
         }
 
-		void TransverseConnect()
+		void Connect()
         {
-            if (!isTraCon)
+            if (!IsTraCon)
             {
                 //attempt to sync with motor
 
                 double hz = ((double)nmTraIPM.Value) * 5.3333;
-                if (mod.WriteModbusQueue(2, 1798, 1, true))
+                if (Connect.WriteModbusQueue(2, 1798, 1, true))
                 {
-                    mod.WriteModbusQueue(2, 0x0300, 04, false);//give Traverse motor master frequency control to rs-485
-                    mod.WriteModbusQueue(2, 0x0301, 03, false);//give Traverse motor Source of operation command  to rs-485
-                    mod.WriteModbusQueue(2, 0x0705, 0, false);//set Traverse speed to zero
-                    mod.WriteModbusQueue(2, 0x010D, 0, false);//set Traverse motor direcction (Fwd/Rev) to be controled by rs-485
-                    isTraCon = true;
-                    btnTraCon.BackColor = Color.Green;
-                    boxTrav.Visible = true;
+                    controller.WriteModbusQueue(2, 0x0300, 04, false);//give Traverse motor master frequency control to rs-485
+                    controller.WriteModbusQueue(2, 0x0301, 03, false);//give Traverse motor Source of operation command  to rs-485
+                    controller.WriteModbusQueue(2, 0x0705, 0, false);//set Traverse speed to zero
+                    controller.WriteModbusQueue(2, 0x010D, 0, false);//set Traverse motor direcction (Fwd/Rev) to be controled by rs-485
+                    IsTraCon = true;
                 }
                 else
                     MesQue.WriteMessageQueue("Connection to Traverse Motor Failed");
 
 
             }
-            else
-            {
-                //Stop the motor
-                StopTra();
+        }
 
-                isTraCon = false;
-                btnTraCon.BackColor = Color.Red;
-                boxTrav.Visible = false;
-            }
+        void Disconnect()
+        {
+            StopTra();
+            IsTraCon = false;
+        }
+
+        void ConnectToggle()
+        {
+            if (IsTraCon)
+                Disconnect();
+            else Connect();
         }
 
         void btnTraRun_Click(object sender, EventArgs e)

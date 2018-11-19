@@ -6,7 +6,7 @@ namespace MysteryBoxCleanUp
     public class SpindleMotor
     {
 
-        Modbus mbus;
+        MotorController controller;
 
         public bool isSpiConnected, isSimulinkControl;
         bool isSpiOn;
@@ -19,7 +19,7 @@ namespace MysteryBoxCleanUp
         double[] SpiSpeed =;
         double SpiSpeedLimit;
 
-        public SpindleMotor(Modbus modbus)
+        public SpindleMotor(MotorController motorController)
         {
             isSpiConnected = false;
             isSpiOn = false;
@@ -29,7 +29,7 @@ namespace MysteryBoxCleanUp
             RPMmax = 2000;
             RPMmin = 0;
 
-            mbus = modbus;
+            controller = motorController;
 
             #region Spindle from UDP Control
             isSpiCW = true;

@@ -14,9 +14,9 @@ namespace MysteryBoxCleanUp
         public double LatLoc;
         public double LatMax;
         public double LatMin;
-        Modbus mod;
+        MotorController controller;
 
-        public LateralMotor(Modbus modbus)
+        public LateralMotor(MotorController motorController)
         {
 			isLatCon = false;
             isLatOn = false;
@@ -27,7 +27,7 @@ namespace MysteryBoxCleanUp
             LatMax = 3.5;
             LatMin = 1.5;
 
-            mod = modbus;
+            controller = motorController;
 
 
         }
