@@ -13,5 +13,10 @@ namespace MysteryBoxCleanUp
             //controller for managing all of the motors. 
             motorController = new MotorController();
         }
+
+        void surfaceprobe()
+        {
+
+        }
     }
 }

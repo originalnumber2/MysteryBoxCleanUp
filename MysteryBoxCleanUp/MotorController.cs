@@ -38,7 +38,7 @@ namespace MysteryBoxCleanUp
         {
             string returnMes = "";
 
-            if (verticalMotor.isVerCon)
+            if (verticalMotor.isVerConnected)
             {
                 //Vertical motor is moved in a specified way.
                 returnMes = returnMes + verticalMotor.move(command);
@@ -54,7 +54,7 @@ namespace MysteryBoxCleanUp
         {
             string returnMes = "";
 
-            if (lateralMotor.isLatCon)
+            if (lateralMotor.IsLatCon)
             {
                 //need to account for Protocal Scheme and Max Speeds
                 returnMes = returnMes + lateralMotor.move(command);
@@ -70,7 +70,7 @@ namespace MysteryBoxCleanUp
         {
             string returnMes = "";
 
-            if (transverseMotor.isTraCon)
+            if (transverseMotor.IsTraCon)
             {
                 //need to account for Protocal Scheme and Max Speeds
                 returnMes = returnMes + TransverseMotor.move(command);
@@ -86,7 +86,7 @@ namespace MysteryBoxCleanUp
         {
             string returnMes = "";
 
-            if (spindleMotor.isSpiCon)
+            if (spindleMotor.isSpiConnected)
             {
                 //need to account for Protocal Scheme and Max Speeds
                 returnMes = returnMes + SpindleMotor.move(command);
@@ -101,7 +101,7 @@ namespace MysteryBoxCleanUp
         internal string ConnVertical()
         {
             string returnMes = "";
-            if (verticalMotor.isVerCon)
+            if (verticalMotor.isVerConnected)
             {
                 //Vertical motor is moved in a specified way.
                 returnMes = returnMes + "Vertical motor is already connected";
@@ -116,7 +116,7 @@ namespace MysteryBoxCleanUp
         internal string ConnLateral()
         {
             string returnMes = "";
-            if (lateralMotor.isLatCon)
+            if (lateralMotor.IsLatCon)
             {
                 //Vertical motor is moved in a specified way.
                 returnMes = returnMes + "Lateral motor is already connected";

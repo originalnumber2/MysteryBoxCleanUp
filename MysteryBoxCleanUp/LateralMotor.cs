@@ -125,11 +125,8 @@ namespace MysteryBoxCleanUp
             {
                 return false;
             }
-            else
-            {
-                LatDir = dir;
-                return true;
-            }
+            LatDir = dir;
+            return true;
         }
 
         //This function moves the Lateral Motor checking for direction and speed changes

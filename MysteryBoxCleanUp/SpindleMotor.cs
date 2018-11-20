@@ -66,8 +66,13 @@ namespace MysteryBoxCleanUp
             mbus.WriteModbusQueue(1, 2000, 0, false);
         }
 
-        private bool ChangeDir(bool Dir)
+        private bool ChangeDir(bool dir)
         {
+            if (dir = SpiDir)
+            {
+                return false;
+            }
+            SpiDir = dir;
             return true;
         }
 
@@ -97,92 +102,30 @@ namespace MysteryBoxCleanUp
             return false;
         }
 
-        private void MoveCC()
-        {}
-
-        private void MoveCCW()
-        {}
-
-        public void 
-
-        internal void SpindleRun(double height)
+        private void MoveCCModbus()
         {
-            string message = "";
-            {
-                //if vertical is high slow it down
-                if (height > 1)
-                    height = 1;
-
-                if (isSpiCW)
-                {
-                    StartSpiCW();
-                    message = "Spindle was started CW with RPM " + SpiRPM.ToString();
-                }
-                else
-                {
-                    StartSpiCCW();
-                    message = "Spindle was started CcW with RPM " + SpiRPM.ToString();
-                }
-
-            }
-
-            return message;
-        }
-
-
-        internal string ChangeSpiRef(double RPM) //Change the Spindle Reference
-        {
-            string message = "";
-            if (isSpiConnected)
-            {
-                //old pulley speed
-                // int speed = (int)((double)nmSpiRPM.Value * 1.58);
-
-                // int speed = (int)(RPM * 2.122);
-                SpiRPM = (int)(RPM * 3.772);
-                //int speed = (int)(RPM * 3.7022); //Adjusted by BG and CC 9/7/12
-                mbus.WriteModbusQueue(1, 2002, SpiRPM, false);
-                message = "Spindle RPM was changed to " + SpiRPM.ToString();
-            }
-            else
-            {
-                StopSpi();
-                message = "Spindle was Stopped";
-
-            }
-            return message;
-        }
-
-
-
-        internal string StartSpiCW()//Start the spindle motor going clockwise
-        {
-            String message = "";
             if (isSpiConnected)
             {
                 mbus.WriteModbusQueue(1, 2000, 1, false);
-                isSpiOn = true;
-                message = "Spindle was started CCW with RPM " + SpiRPM.ToString();
             }
-            else
-            {
-                StopSpi();
-                message = "Spindle was stopped, spindle not connected";
-            }
-            return message;
         }
 
-        void StartSpiCCW()//Start the spindle motor going counter-clockwise
+        private void MoveCCWModbus()
         {
             if (isSpiConnected)
             {
-                mbus.WriteModbusQueue(1, 2000, 3, false);
-                isSpiOn = true;
+                mbus.WriteModbusQueue(1, 2000, 1, false);
             }
-            else
+        }
+
+        public void moveModbus(double IPM, bool dir)
+        {
+            if (ChangeDir(dir) || ChangeIPM(IPM))
             {
-                StopSpi();
+                if (SpiDir) { MoveCCModbus() }
+                else MoveCCWModbus();
             }
+
         }
 
         internal void SpindleUDPControl()

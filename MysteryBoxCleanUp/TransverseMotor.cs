@@ -125,11 +125,8 @@ namespace MysteryBoxCleanUp
             {
                 return false;
             }
-            else
-            {
-                TraDir = dir;
-                return true;
-            }
+            TraDir = dir;
+            return true;
         }
 
 

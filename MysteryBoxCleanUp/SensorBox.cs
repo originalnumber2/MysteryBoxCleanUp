@@ -108,8 +108,7 @@ namespace MysteryBoxCleanUp
             SendMutex.WaitOne();
             SendData += "L1";
             SendMutex.ReleaseMutex();
-            btnLubOn.BackColor = Color.Green;
-            isLubOn = true;
+     
         }
         void LubOff()
         {
