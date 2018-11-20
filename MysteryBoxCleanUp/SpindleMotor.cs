@@ -8,84 +8,104 @@ namespace MysteryBoxCleanUp
 
         MotorController controller;
 
-        public bool isSpiConnected, isSimulinkControl;
-        bool isSpiOn;
-        double SpiRPM, RPMmin, RPMmax;
-
-        string SpiMessage;
-        bool isSpiCW;
-        bool isSpiSpeedCW;
-        double SpiSpeedMagnitude;
-        double[] SpiSpeed =;
-        double SpiSpeedLimit;
+        public bool isSpiConnected;
+        public bool isSimulinkControl;
+        public double SpiRPM;
+        public bool SpiDir; //Spindle direction true - Clockwise false - counter clockwise
+        public double RPMmin;
+        public double RPMmax;
+        private double epsilon;
 
         public SpindleMotor(MotorController motorController)
         {
             isSpiConnected = false;
-            isSpiOn = false;
             isSimulinkControl = false;
-
             SpiRPM = 0;
+            SpiDir = true;
             RPMmax = 2000;
             RPMmin = 0;
 
             controller = motorController;
-
-            #region Spindle from UDP Control
-            isSpiCW = true;
-            isSpiSpeedCW = true;
-            SpiSpeedMagnitude = 0;
-            SpiSpeed = new double[2];
-            ChangeSpiRef(0);
-            StartSpiCW();
-            #endregion
 
         }
 
         internal void ConnectionToggle()
         {
             if (isSpiConnected)
-                DisconnectSpindle();
+                Disconnect();
             else
-                ConnectSpindle();
+                Connect();
         }
 
 
-        internal string ConnectSpindle()
+        private void Connect()
         {
-            string message = "";
-            if (!isSpiConnected)
+            //attempt to sync with motor
+            //int speed = (int)((double)nmSpiRPM.Value * 2.122);
+            //int speed = (int)((double)nmSpiRPM.Value * 3.772);
+            //int speed = (int)((double)nmSpiRPM.Value * 3.7022); //Adjusted by BG and CC on 9/7/12
+            if (mbus.WriteModbusQueue(1, 2000, 0, true))
             {
-                //attempt to sync with motor
-                //int speed = (int)((double)nmSpiRPM.Value * 2.122);
-                //int speed = (int)((double)nmSpiRPM.Value * 3.772);
-                //int speed = (int)((double)nmSpiRPM.Value * 3.7022); //Adjusted by BG and CC on 9/7/12
-                if (mbus.WriteModbusQueue(1, 2000, 0, true))
-                {
-                    isSpiConnected = true;
-                    message = "Spindle Connected";
-                }
-                else
-                    isSpiConnected = false;
-                message = "Spindle Failed to connect";
+                isSpiConnected = true;
+                message = "Spindle Connected";
             }
             else
-            {
-                StopSpi();//Stop the motor
                 isSpiConnected = false;
-                message = "Spindle Disconnected";
-            }
-            return message;
+            message = "Spindle Failed to connect";
         }
 
-        internal String DisconnectSpindle()
+        private void Disconnect()
         {
-            StopSpi();//Stop the motor
+            mbus.WriteModbusQueue(1, 2000, 0, false);
             isSpiConnected = false;
-            return "Spindle Disconnected";
         }
 
-        internal string SpindleRun(double height)
+        public void StopSpi()//Stop the Spindle Motor
+        {
+            //Stop the spindle
+            mbus.WriteModbusQueue(1, 2000, 0, false);
+        }
+
+        private bool ChangeDir(bool Dir)
+        {
+            return true;
+        }
+
+        private bool ChangeRPM(Double RPM)
+        {
+            //allow for checking of maximum speeds and insure IPM is positive
+            double CheckRPM = Math.Abs(RPM);
+            if (CheckRPM > RPMmax)
+            {
+                CheckRPM = RPMmax;
+            }
+            else
+            {
+                if (CheckRPM < RPMmin)
+                {
+                    CheckRPM = RPMmin;
+                }
+
+            }
+            if (Math.Abs(CheckRPM - SpiRPM) > epsilon)
+            {
+                SpiRPM = CheckRPM;
+                //int speed = (int)(RPM * 3.7022); //Adjusted by BG and CC 9/7/12
+                controller.WriteModbusQueue(1, 2002, (int)(SpiRPM * 3.772), false);
+                return true;
+            }
+            return false;
+        }
+
+        private void MoveCC()
+        {}
+
+        private void MoveCCW()
+        {}
+
+        public void 
+
+        internal void SpindleRun(double height)
         {
             string message = "";
             {
@@ -133,13 +153,7 @@ namespace MysteryBoxCleanUp
             return message;
         }
 
-        internal string StopSpi()//Stop the Spindle Motor
-        {
-            //Stop the spindle
-            mbus.WriteModbusQueue(1, 2000, 0, false);
-            isSpiOn = false;
-            return "Spindle was stopped."
-        }
+
 
         internal string StartSpiCW()//Start the spindle motor going clockwise
         {

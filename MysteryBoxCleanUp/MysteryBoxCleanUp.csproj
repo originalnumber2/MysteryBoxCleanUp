@@ -90,6 +90,7 @@
     <Compile Include="MotorController.cs" />
     <Compile Include="ModbusInt.cs" />
     <Compile Include="UDPInt.cs" />
+    <Compile Include="PositionController.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
