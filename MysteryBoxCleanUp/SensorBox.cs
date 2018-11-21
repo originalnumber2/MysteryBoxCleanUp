@@ -100,21 +100,21 @@ namespace MysteryBoxCleanUp
 
         void LubOn()
         {
+            //might need to make send data a bit differnt Lead with an A and trail with an X.
             //Take control of Mutex
-            SendMutex.WaitOne();
-            SendData += "L1";
-            SendMutex.ReleaseMutex();
-     
+            string SendData = "L1";
+            byte[] BytesOut = Encoding.ASCII.GetBytes(SendData);
+            SenStream.Write(BytesOut, 0, BytesOut.Length);
+
         }
 
         void LubOff()
         {
+            //might need to make send data a bit differnt Lead with an A and trail with an X.
             //Take control of Mutex
-            SendMutex.WaitOne();
-            SendData += "L0";
-            SendMutex.ReleaseMutex();
-            btnLubOn.BackColor = Color.Red;
-            isLubOn = false;
+            string SendData = "L0";
+            byte[] BytesOut = Encoding.ASCII.GetBytes(SendData);
+            SenStream.Write(BytesOut, 0, BytesOut.Length);
         }
 
         void MysteryBoxConnect()
