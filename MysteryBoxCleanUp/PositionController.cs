@@ -48,7 +48,7 @@ namespace MysteryBoxCleanUp
 
         }
 
-        void MoveToPlane(double LatLoc, double VerLoc)
+        internal  MoveToPlane(double LatLoc, double TraLoc)
         {
             MoveToLatLoc(LatLoc);
             MoveToTraLoc(TraLoc);
