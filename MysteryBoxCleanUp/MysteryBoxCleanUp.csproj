@@ -91,6 +91,7 @@
     <Compile Include="UDPInt.cs" />
     <Compile Include="PositionController.cs" />
     <Compile Include="DataController.cs" />
+    <Compile Include="NIDaq.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
