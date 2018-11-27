@@ -7,6 +7,10 @@ namespace MysteryBoxCleanUp
         double TraLoc; //Position of the Transverse axis
         double VerLoc; // Position of the Verticle axis
 
+        double LatMax, LatMin; //maximum and minimum Lateral Values
+        double TraMax, TraMin; //maximum and minimum transverse Values
+        double VerMax, VerMin; //maximum and minimum Vertical values
+
         double EpsilonLat; //accuracy variable for the Lateral Axis
         double EpsilonTra; //accuracy variable for the transverse axis
         double EpsilonVer; //accuracy variable for the Verticle Axis
@@ -19,10 +23,54 @@ namespace MysteryBoxCleanUp
 
             controller = cont;
 
+            //might want to update these to an getter that works for not connected errors
             LatLoc = GetLatLoc();
             TraLoc = GetTraLoc();
             VerLoc = GetVerLoc();
 
+            SetAllLimits(3.5, 1.5, 27.5, 9, 7.5, 1);
+
+        }
+
+
+        public bool CheckLatLimits()
+        {
+            return LatMax >= LatLoc && LatMin <= LatLoc;
+        }
+
+        public bool CheckTraLimits()
+        {
+            return TraMax >= TraLoc && TraMin <= TraLoc;
+        }
+
+        public bool CheckVerLimits()
+        {
+            return VerMax >= VerLoc && VerMin <= VerLoc;
+        }
+
+        void SetAllLimits(double latMax, double latMin, double traMax, double traMin, double verMax, double verMin)
+        {
+            SetLatLimits(latMax, latMin);
+            SetTraLimits(traMax, traMin);
+            SetVerLimits(verMax, verMin);
+        }
+
+        void SetLatLimits(double max, double min)
+        {
+            LatMax = max;
+            LatMin = min;
+        }
+
+        void SetTraLimits(double max, double min)
+        {
+            TraMax = max;
+            TraMin = min;
+        }
+
+        void SetVerLimits(double max, double min)
+        {
+            VerMax = max;
+            VerMin = min;
         }
 
         private double GetVerLoc()
@@ -57,38 +105,29 @@ namespace MysteryBoxCleanUp
 
         private void MoveToVerLoc(double verLoc)
         {
-            if(Math.Abs(verLoc - VerLoc) < EpsilonVer)
+            while(Math.Abs(verLoc - VerLoc) > EpsilonVer)
             {
                 controller.MotorController.MoveVertical();
             }
-            else
-            {
                 controller.MotorController.StopVertical();
-            }
         }
 
         private void MoveToTraLoc(double traLoc)
         {
-            if (Math.Abs(traLoc - TraLoc) < EpsilonTra)
+            while(Math.Abs(traLoc - TraLoc) > EpsilonTra)
             {
                 controller.MotorController.MoveTransverse();
             }
-            else
-            {
                 controller.MotorController.StopTransverse();
-            }
         }
 
         private void MoveToLatLoc(double latLoc)
         {
-            if (Math.Abs(latLoc - LatLoc) < EpsilonLat)
+            while(Math.Abs(latLoc - LatLoc) > EpsilonLat)
             {
                 controller.MotorController.MoveLateral();
             }
-            else
-            {
-                controller.MotorController.StopLateral();
-            }
+            controller.MotorController.StopLateral();
         }
     }
 }

@@ -7,18 +7,26 @@ namespace MysteryBoxCleanUp
     public class VerticalMotor
     {
 
-        //getters and setters need to be generated for setting max mins and acceleration
-        public bool isVerConnected, isVerContinous, isSimulinkControl;
-        bool isSetVerWeld;
+        //bools dealing with the state of connection of the motor communication
+        public bool isVerCon;
+        public bool isVerContinous;
+        public bool isSimulinkControl;
+
+        bool isSetVerWeld; //not sure what this variable is used for
+
+        //serial port for communicating with the vertical motor
         SerialPort VerPort;
-        //Values for describing locations in the vertical
-        int VerCount, verTurns;
-        double VerLoc; //   current welder Z location
-        double VerWeld;//location of the material's surface
-        double VerPlunge;//how far the tool should plunge into the material
-        double VerSpeed; //two iteration history of the vertical motor speed.
-        double VerSpeedMax, VerAccel, VerSpeedMin;
-        bool isVerDown;
+
+        //motor state variables
+        int VerCount;
+        int verTurns;
+        public double VerSpeed; //two iteration history of the vertical motor speed.
+
+        public double VerAccel;
+        public bool VerDir;
+
+        //safty limits for the speed
+        double VerSpeedMax, VerSpeedMin; 
         private double epsilon;
 
         public VerticalMotor()
@@ -26,7 +34,7 @@ namespace MysteryBoxCleanUp
 
             //need to do something about the modbus UDP problem and bring together
             isVerContinous = true;
-            isVerConnected = false;
+            isVerCon = false;
             isSetVerWeld = false; //I dont know what this is used for
             isSimulinkControl = false; // Determine if simulink control is on Might want to bubble this up to a higher class
             VerCount = 0; //Number of rotations to preform
@@ -38,14 +46,8 @@ namespace MysteryBoxCleanUp
             VerSpeedMax = 5;
             VerAccel = 10;
             VerSpeedMin = 0.00001;//from motor guide
-            isVerDown = true; // is the vertical motor down
+            VerDir = true; // true is the vertical motor down
             # endregion
-
-            #region Position Control of the Verticle axis
-            VerLoc = -1; //Current Verticle Locations
-            VerWeld = 0; //location of the material's surface
-            VerPlunge = 0; //how far the tool should plunge into the material
-            # endregion 
 
 
             #region Setting up the serial communication port
@@ -61,6 +63,51 @@ namespace MysteryBoxCleanUp
 
         }
 
+        //movement needs to be cleaned up and improved to account for UDP and insure consistency though methods.
+        internal void Move(double IPM, bool dir)
+        {
+            if (ChangeDir(dir) || ChangeIPM(IPM))
+            {
+                if (VerDir) { LowerTableModbus(); }
+                else RaiseTableModbus();
+            }
+        }
+
+        private bool ChangeIPM(double IPM)
+        {
+            //allow for checking of maximum speeds and insure IPM is positive
+            double CheckIPM = Math.Abs(IPM);
+            if (CheckIPM > VerSpeedMax)
+            {
+                CheckIPM = VerSpeedMax;
+            }
+            else
+            {
+                if (CheckIPM < VerSpeedMin)
+                {
+                    CheckIPM = VerSpeedMin;
+                }
+
+            }
+            if (Math.Abs(CheckIPM - VerSpeed) > epsilon)
+            {
+                VerSpeed = CheckIPM;
+                return true;
+            }
+            return false;
+
+        }
+
+        private bool ChangeDir(bool dir)
+        {
+            if (dir = VerDir)
+            {
+                return false;
+            }
+            VerDir = dir;
+            return true;
+        }
+
         //Setter for the Vertical Speed
         internal string SetSpeed(double speed)
         {
@@ -74,7 +121,7 @@ namespace MysteryBoxCleanUp
         }
 
 
-        void RaiseTable()
+        void RaiseTableModbus()
         {
             String VerMessage;
             VerMessage = String.Empty;
@@ -95,7 +142,7 @@ namespace MysteryBoxCleanUp
             VerPort.Write(VerMessage);
         }
 
-        void LowerTable()
+        void LowerTableModbus()
         {
             String VerMessage;
             VerMessage = String.Empty;
@@ -118,7 +165,7 @@ namespace MysteryBoxCleanUp
 
         internal string VerticalConnectToggle()
         {
-            if (!isVerConnected)//connect to vertical motor
+            if (!isVerCon)//connect to vertical motor
             {
                 return VerConnect();
             }
@@ -164,7 +211,7 @@ namespace MysteryBoxCleanUp
             else //this was edited out
             {
                 //Update the boolean
-                isVerConnected = true;
+                isVerCon = true;
                 responce = "Connected to vertical motor";
 
             }
@@ -178,7 +225,7 @@ namespace MysteryBoxCleanUp
             VerPort.Write("S\r");
             Thread.Sleep(300);
             VerPort.Write("OFF\r");
-            isVerConnected = false;
+            isVerCon = false;
             //show that vertical motor is disconected on gui
             return "Disconnected from vertical motor";
         }
@@ -199,11 +246,11 @@ namespace MysteryBoxCleanUp
 
             if (Math.Abs(VerSpeed - speed) > epsilon)
             {
-                isVerDown = trueifpositive(VerSpeed);
+                VerDir = trueifpositive(VerSpeed);
                 VerSpeedMagnitude = Math.Abs(VerSpeed);
                 SetSpeed(speed);
                 VerMessage = "H";
-                if (isVerDown)
+                if (VerDir)
                     VerMessage += "+";
                 else
                     VerMessage += "-";

@@ -6,19 +6,19 @@ namespace MysteryBoxCleanUp
     public class TransverseMotor
     {
 
-        public bool IsTraCon { get; set; }
-        public bool IsSimulinkControl { get; set; } //determines if the transverse motor is under modbus control or not
+        public bool IsTraCon;
+        public bool IsSimulinkControl;//determines if the transverse motor is under modbus control or not
         //Values for describing locations in the traverse
-        private double TraIPM { get; set; } //current speed the transverse axis is configured for.
-        private bool TraDir; //current direction of the transverse axis true - Forward false - reverse
-        public double TraMax { get; set; } //maximum speed the transverse axis (ipm) is allowed to move
-        public double TraMin { get; set; } //minimum speed the transverse axis (ipm) is allowed to move
+        public double TraIPM; //current speed the transverse axis is configured for.
+        public bool TraDir; //current direction of the transverse axis true - Forward false - reverse
+        public double TraMax; //maximum speed the transverse axis (ipm) is allowed to move
+        public double TraMin; //minimum speed the transverse axis (ipm) is allowed to move
         MotorController controller;
         private double epsilon;
 
         public TransverseMotor(MotorController motorController)
         {
-			IsTraCon = false;
+            IsTraCon = false;
             IsSimulinkControl = false;
             TraIPM = 0;
             TraDir = true;
@@ -131,11 +131,11 @@ namespace MysteryBoxCleanUp
 
 
 
-        void moveModbus(double IPM, bool dir)
+        internal void moveModbus(double IPM, bool dir)
         {
             if (ChangeDir(dir) || ChangeIPM(IPM))
             {
-                if (TraDir) { MoveForwardModbus() }
+                if (TraDir) { MoveForwardModbus(); }
                 else MoveReverseModbus();
             }
         }

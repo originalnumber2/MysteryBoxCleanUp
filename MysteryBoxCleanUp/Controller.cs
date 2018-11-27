@@ -12,12 +12,12 @@ namespace MysteryBoxCleanUp
         internal double LatLoc; //position of the lateral axis
         internal double TraLoc; //Position of the Transverse axis
         internal double VerLoc; // Position of the Verticle axis
-        double SpiRPM;
-        bool SpiDir; //Spindle direction true - Clockwise false - counter clockwise
-        double TraIPM { get; set; } //current speed the transverse axis is configured for.
-        bool TraDir; //current direction of the transverse axis true - Forward false - reverse
-        public double LatIPM; //Current speed (IPM) of the lateral Axis
-        public bool LatDir; //Current Direction of the Lateral Axis True - Out False - In
+        internal double SpiRPM;
+        internal bool SpiDir; //Spindle direction true - Clockwise false - counter clockwise
+        internal double TraIPM; //current speed the transverse axis is configured for.
+        internal bool TraDir; //current direction of the transverse axis true - Forward false - reverse
+        internal double LatIPM; //Current speed (IPM) of the lateral Axis
+        internal bool LatDir; //Current Direction of the Lateral Axis True - Out False - In
 
         public Controller()
         {
@@ -31,31 +31,45 @@ namespace MysteryBoxCleanUp
             DataController = new DataController(this);
         }
 
-        void LinearWeld()
+        //leave these parameters as functional variables for now. might want these to be class variables
+        void LinearWeld (double plungespeed, double plungeDepth, double ZHeight)
         {
+            // check for connections.
+
+            //toggle to simulink control
+
+            //hand variables to matlab. 
+
+            //while loop
+            //insure check for safety
+
+            //package data for UDP
+
+
+            //wait for process to finish
 
         }
 
-        void surfaceprobe()
+        internal void SurfaceProbe(double[] latLocs, double[] traLocs)
         {
-            double[] latLocs;
-            double[] TraLocs;
-            double latLoc = 0;
-            double traLoc = 0;
-
+            SafetyCheck();
+            double height;
+            CsvWriter writer = new CsvWriter(",", "surfaceprobe.csv");
+            string[] header = { "Lateral", "Transverse", "height" };
+            writer.WriteHeader(header);
             foreach (double i in latLocs)
             {
-                foreach (double j in traLoc)
+                foreach (double j in traLocs)
                 {
-                    positionController.MoveToPlane(i, j);
-                    AutoZero();
-
-
+                    PositionController.MoveToPlane(i, j);
+                    height = AutoZero(0.25);
+                    double[] array = {i, j, height};
+                    writer.AddDoubleArray(array);
                 }
             }
         }
     
-        double AutoZero()
+        internal double AutoZero(double returnHeight) //returnHeight represents the height above the found surface the machine returns to.
         {
             double height = 0;
             double epsilon = 0.0006;

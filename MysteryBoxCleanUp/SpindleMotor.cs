@@ -8,7 +8,7 @@ namespace MysteryBoxCleanUp
 
         MotorController controller;
 
-        public bool isSpiConnected;
+        public bool isSpiCon;
         public bool isSimulinkControl;
         public double SpiRPM;
         public bool SpiDir; //Spindle direction true - Clockwise false - counter clockwise
@@ -18,7 +18,7 @@ namespace MysteryBoxCleanUp
 
         public SpindleMotor(MotorController motorController)
         {
-            isSpiConnected = false;
+            isSpiCon = false;
             isSimulinkControl = false;
             SpiRPM = 0;
             SpiDir = true;
@@ -31,7 +31,7 @@ namespace MysteryBoxCleanUp
 
         internal void ConnectionToggle()
         {
-            if (isSpiConnected)
+            if (isSpiCon)
                 Disconnect();
             else
                 Connect();
@@ -46,18 +46,18 @@ namespace MysteryBoxCleanUp
             //int speed = (int)((double)nmSpiRPM.Value * 3.7022); //Adjusted by BG and CC on 9/7/12
             if (mbus.WriteModbusQueue(1, 2000, 0, true))
             {
-                isSpiConnected = true;
+                isSpiCon = true;
                 message = "Spindle Connected";
             }
             else
-                isSpiConnected = false;
+                isSpiCon = false;
             message = "Spindle Failed to connect";
         }
 
         private void Disconnect()
         {
             mbus.WriteModbusQueue(1, 2000, 0, false);
-            isSpiConnected = false;
+            isSpiCon = false;
         }
 
         public void StopSpi()//Stop the Spindle Motor
@@ -104,7 +104,7 @@ namespace MysteryBoxCleanUp
 
         private void MoveCCModbus()
         {
-            if (isSpiConnected)
+            if (isSpiCon)
             {
                 mbus.WriteModbusQueue(1, 2000, 1, false);
             }
@@ -112,7 +112,7 @@ namespace MysteryBoxCleanUp
 
         private void MoveCCWModbus()
         {
-            if (isSpiConnected)
+            if (isSpiCon)
             {
                 mbus.WriteModbusQueue(1, 2000, 1, false);
             }

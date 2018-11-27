@@ -5,16 +5,25 @@ namespace MysteryBoxCleanUp
 {
     public class MotorController
     {
-        Modbus modbus;
-        UDPCom UDPCom;
+        internal Modbus modbus;
+        internal UDPCom UDPCom;
         VerticalMotor verticalMotor;
         TransverseMotor transverseMotor;
         LateralMotor lateralMotor;
         SpindleMotor spindleMotor;
 
-        Controller Controller;
+        internal Controller Controller;
 
-        Mutex commandMutex;
+        internal Mutex commandMutex;
+
+        //motor connection variables
+        bool IsTraCon;
+        bool IsLatCon;
+        bool IsSpiCon;
+        bool IsVerCon;
+
+        //simulink UDP connection variables
+        bool IsSimulinkConnected;
 
         //State Variables of the controller
         double SpiRPM;
@@ -23,7 +32,12 @@ namespace MysteryBoxCleanUp
         bool TraDir; //current direction of the transverse axis true - Forward false - reverse
         public double LatIPM; //Current speed (IPM) of the lateral Axis
         public bool LatDir; //Current Direction of the Lateral Axis True - Out False - In
+        double VerSpeed; //Current vertical motor speed
+        double VerAccel; //current vertical motor acceleration
+        internal bool VerDir; // vertical motor direction
 
+
+        //not completely happy with this constructor
         public MotorController(Controller controller)
         {
             //creation of communication protocals
@@ -43,13 +57,77 @@ namespace MysteryBoxCleanUp
 
             //creating the spindle motor, it communicatates over Modbus
             spindleMotor = new SpindleMotor(this);
+
+            UpdateParameters();
+        }
+
+        void UpdateParameters()
+        {
+            if (IsLatCon && IsSpiCon && IsTraCon && IsVerCon)
+            {
+                GetMotorStates();
+                GetMotorDirection();
+            }
+            else mes.messageQueue("connect the motors");
+        }
+
+        void GetMotorConnections()
+        {
+            IsLatCon = lateralMotor.IsLatCon;
+            IsTraCon = transverseMotor.IsTraCon;
+            IsSpiCon = spindleMotor.isSpiCon;
+            IsVerCon = verticalMotor.isVerCon;
+        }
+
+        //toggles to simulink control
+        void SetInterfaceToggle()
+        {
+                transverseMotor.IsSimulinkControl = IsSimulinkConnected;
+                lateralMotor.IsSimulinkControl = IsSimulinkConnected;
+                verticalMotor.isSimulinkControl = IsSimulinkConnected;
+                spindleMotor.isSimulinkControl = IsSimulinkConnected;
+            //if(IsSimulinkConnected)
+            //{
+            //    transverseMotor.IsSimulinkControl = true;
+            //    lateralMotor.IsSimulinkControl = true;
+            //    verticalMotor.isSimulinkControl = true;
+            //    spindleMotor.isSimulinkControl = true;
+            //}
+            //else
+            //{
+            //    transverseMotor.IsSimulinkControl = false;
+            //    lateralMotor.IsSimulinkControl = false;
+            //    verticalMotor.isSimulinkControl = false;
+            //    spindleMotor.isSimulinkControl = false;
+            //}
+
+        }
+
+        void GetMotorStates()
+        {
+            SpiRPM = spindleMotor.SpiRPM;
+            SpiDir = spindleMotor.SpiDir;
+            TraIPM = transverseMotor.TraIPM;
+            TraDir = transverseMotor.TraDir;
+            LatIPM = lateralMotor.LatIPM;
+            LatDir = lateralMotor.LatDir;
+            VerSpeed = verticalMotor.VerSpeed;
+            VerAccel = verticalMotor.VerAccel;
+        }
+
+        void GetMotorDirection()
+        {
+            SpiDir = spindleMotor.SpiDir;
+            TraDir = transverseMotor.TraDir;
+            LatDir = lateralMotor.LatDir;
+            isVerDown = verticalMotor.isVerDown;
         }
 
         internal string MoveVertical()
         {
             string returnMes = "";
 
-            if (verticalMotor.isVerConnected)
+            if (IsVerCon)
             {
                 //Vertical motor is moved in a specified way.
                 returnMes = returnMes + verticalMotor.move(command);
@@ -65,7 +143,7 @@ namespace MysteryBoxCleanUp
         {
             string returnMes = "";
 
-            if (lateralMotor.IsLatCon)
+            if (IsLatCon)
             {
                 //need to account for Protocal Scheme and Max Speeds
                 returnMes = returnMes + lateralMotor.move(command);
@@ -81,7 +159,7 @@ namespace MysteryBoxCleanUp
         {
             string returnMes = "";
 
-            if (transverseMotor.IsTraCon)
+            if (IsTraCon)
             {
                 //need to account for Protocal Scheme and Max Speeds
                 returnMes = returnMes + TransverseMotor.move(command);
@@ -97,7 +175,7 @@ namespace MysteryBoxCleanUp
         {
             string returnMes = "";
 
-            if (spindleMotor.isSpiConnected)
+            if (IsSpiCon)
             {
                 //need to account for Protocal Scheme and Max Speeds
                 returnMes = returnMes + SpindleMotor.move(command);
@@ -112,7 +190,7 @@ namespace MysteryBoxCleanUp
         internal string ConnVertical()
         {
             string returnMes = "";
-            if (verticalMotor.isVerConnected)
+            if (IsVerCon)
             {
                 //Vertical motor is moved in a specified way.
                 returnMes = returnMes + "Vertical motor is already connected";
@@ -127,7 +205,7 @@ namespace MysteryBoxCleanUp
         internal string ConnLateral()
         {
             string returnMes = "";
-            if (lateralMotor.IsLatCon)
+            if (IsLatCon)
             {
                 //Vertical motor is moved in a specified way.
                 returnMes = returnMes + "Lateral motor is already connected";
@@ -142,7 +220,7 @@ namespace MysteryBoxCleanUp
         internal string ConnTransverse()
         {
             string returnMes = "";
-            if (verticalMotor.isVerCon)
+            if (IsTraCon)
             {
                 //Vertical motor is moved in a specified way.
                 returnMes = returnMes + "Transverse motor is already connected";
@@ -157,7 +235,7 @@ namespace MysteryBoxCleanUp
         internal string ConnSpindle()
         {
             string returnMes = "";
-            if (spindleMotor.isSpiCon)
+            if (IsSpiCon)
             {
                 //Vertical motor is moved in a specified way.
                 returnMes = returnMes + "Vertical motor is already connected";
@@ -187,15 +265,6 @@ namespace MysteryBoxCleanUp
         internal void StopSpindle()
         {
             spindleMotor.StopSpi();
-        }
-
-
-
-        //Toggles Control between UDP and Modbus Control
-        //placeholder
-        internal String ToggleControl()
-        {
-            return "";
         }
 
     }
