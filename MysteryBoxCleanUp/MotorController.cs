@@ -12,14 +12,25 @@ namespace MysteryBoxCleanUp
         LateralMotor lateralMotor;
         SpindleMotor spindleMotor;
 
+        Controller Controller;
+
         Mutex commandMutex;
 
-        public MotorController()
+        //State Variables of the controller
+        double SpiRPM;
+        bool SpiDir; //Spindle direction true - Clockwise false - counter clockwise
+        double TraIPM { get; set; } //current speed the transverse axis is configured for.
+        bool TraDir; //current direction of the transverse axis true - Forward false - reverse
+        public double LatIPM; //Current speed (IPM) of the lateral Axis
+        public bool LatDir; //Current Direction of the Lateral Axis True - Out False - In
+
+        public MotorController(Controller controller)
         {
             //creation of communication protocals
             modbus = new Modbus();
             UDPCom = new UDPCom();
 
+            Controller = controller;
 
             //creating the verticle motor, it communicates over USB RS424
             verticalMotor = new VerticalMotor();
@@ -157,6 +168,28 @@ namespace MysteryBoxCleanUp
             }
             return returnMes;
         }
+
+        internal void StopVertical()
+        {
+            verticalMotor.StopVer();
+        }
+
+        internal void StopLateral()
+        {
+            lateralMotor.StopLat();
+        }
+
+        internal void StopTransverse()
+        {
+            transverseMotor.StopTra();
+        }
+
+        internal void StopSpindle()
+        {
+            spindleMotor.StopSpi();
+        }
+
+
 
         //Toggles Control between UDP and Modbus Control
         //placeholder

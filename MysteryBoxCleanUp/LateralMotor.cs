@@ -84,7 +84,7 @@ namespace MysteryBoxCleanUp
             }
         }
 
-       public void Stop()
+        internal void StopLat()
         {
             Controller.WriteModbusQueue(3, 0x0706, 1, false);
             IsLatCon = false;

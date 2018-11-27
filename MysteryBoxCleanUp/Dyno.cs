@@ -14,7 +14,7 @@ namespace MysteryBoxCleanUp
     {
         //class variables (some of these need to move to the constructor
         //Connection Status of the Dyno
-        public bool isDynCon;
+        internal bool isDynCon;
 
         //might want move this into another structure if i need to 
         //Dynamometer Structures
@@ -25,8 +25,10 @@ namespace MysteryBoxCleanUp
         SerialPort DynoControlPort;
 
         //implementing a new averaging object to make things clean and mantain averaging arrays    
-        int filterLength;
-        MovingAverage averager;
+        protected int filterLength;
+        protected MovingAverage averager;
+
+        internal double XForce, YForce, ZForceDyno, TForce, VAngle, XYForce, XYForceAverage;
 
         //constuctor for the dyno
         public Dyno()
@@ -47,6 +49,14 @@ namespace MysteryBoxCleanUp
             // creating and defining the objects for the moving average
             filterLength = 5;
             averager = new MovingAverage(filterLength);
+
+            XForce = 0;
+            YForce = 0;
+            ZForceDyno = 0;
+            TForce = 0;
+            VAngle = 0;
+            XYForce = 0;
+            XYForceAverage = 0;
 
             // Try to initialize the dyno control port and catch any errors
             try
@@ -119,7 +129,6 @@ namespace MysteryBoxCleanUp
         {
             //establish all the varables for the data
             double[] reading = new double[7];
-            double XForce, YForce, ZForceDyno, TForce, VAngle, XYForce, XYForceAverage;
 
             //sampleing from all 8 channels, DAQ has a max sampling rate of 10,000Hz so for sampleing 8 channels the rate=10,000/8=1,250
             int LowChan = 0, HighChan = 7, Rate = 1250, Count = 8;//JNEW

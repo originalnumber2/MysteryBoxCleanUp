@@ -64,7 +64,7 @@ namespace MysteryBoxCleanUp
             else Connect();
         }
 
-        void StopTra()//Stop the traverse Motor
+        internal void StopTra()//Stop the traverse Motor
         {
             controller.WriteModbusQueue(2, 0x0706, 1, false);
             IsTraCon = false;

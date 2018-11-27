@@ -130,7 +130,7 @@ namespace MysteryBoxCleanUp
             VerPort.Write("E S\r");
         }
 
-        void StopVer() //Stop the vertical Motor
+        internal void StopVer() //Stop the vertical Motor
         {
             VerPort.Write("S\r");
         }

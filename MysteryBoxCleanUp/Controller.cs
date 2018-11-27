@@ -3,21 +3,32 @@ namespace MysteryBoxCleanUp
 {
     public class Controller
     {
-        MotorController motorController;
-        PositionController positionController;
-        DataController dataController;
+        internal MotorController MotorController;
+        PositionController PositionController;
+        internal DataController DataController;
         MessageQueue messageQueue;
+
+        //state variables
+        internal double LatLoc; //position of the lateral axis
+        internal double TraLoc; //Position of the Transverse axis
+        internal double VerLoc; // Position of the Verticle axis
+        double SpiRPM;
+        bool SpiDir; //Spindle direction true - Clockwise false - counter clockwise
+        double TraIPM { get; set; } //current speed the transverse axis is configured for.
+        bool TraDir; //current direction of the transverse axis true - Forward false - reverse
+        public double LatIPM; //Current speed (IPM) of the lateral Axis
+        public bool LatDir; //Current Direction of the Lateral Axis True - Out False - In
 
         public Controller()
         {
             //Que for managing all messages;
             messageQueue = new MessageQueue();
             //controller for managing all of the motors. 
-            motorController = new MotorController();
+            MotorController = new MotorController(this);
             //new controller for the control of the position
-            positionController = new PositionController(this);
+            PositionController = new PositionController(this);
             //new conroller for the flow of data
-            dataController = new DataController();
+            DataController = new DataController(this);
         }
 
         void LinearWeld()
@@ -176,6 +187,47 @@ namespace MysteryBoxCleanUp
             }
 
             //return height;
+        }
+
+        void SafetyCheck()
+        {
+            #region Check Safety Limits
+            if (isSenCon)
+            {
+                if ((VerLoc > VerMax || VerLoc < VerMin) && !isAlarm)
+                    onAlarm("Vertical Out of Bounds");
+                if ((TraLoc > TraMax || TraLoc < TraMin) && !isAlarm)
+                    onAlarm("Traverse Out of Bounds");
+                if ((LatLoc < LatMin || LatLoc > LatMax) && !isAlarm)
+                    onAlarm("Lateral Out of Bounds");
+                if (isEmergencyButton && !isAlarm)
+                    onAlarm("Emergency Button Pressed");
+            }
+            if (isDynCon)
+            {
+                //if (XYForce > MaxXYForce && !isAlarm) now using a 5 point moving average to reduce noise spikes J 8/29/2016
+                if (XYForceAverage > MaxXYForce && !isAlarm)
+                    onAlarm("XY force limit exceeded");
+                if (Math.Abs(TForce) > MaxTForce && !isAlarm)
+                    onAlarm("Torque limit exceeded");
+                if (ZForceDyno > MaxZForce && !isAlarm)
+                    onAlarm("ZForce limit exceeded");
+            }
+            else
+            {
+                if (ZForce > MaxZForce && !isAlarm)
+                    onAlarm("ZForce limit exceeded");
+            }
+            #endregion
+            #region Update Max Histories
+            if (ZForce > ZMaxHistory)
+                ZMaxHistory = ZForce;
+            if (XYForce > MaxXYForceHistory)
+                MaxXYForceHistory = XYForce;
+            if (Math.Abs(TForce) > MaxTForceHistory)
+                MaxTForceHistory = Math.Abs(TForce);
+            #endregion
+
         }
     }
 }

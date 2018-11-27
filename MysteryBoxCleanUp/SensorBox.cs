@@ -8,30 +8,27 @@ using System.Windows.Forms;
 namespace MysteryBoxCleanUp
 {
 
-	//Class is made to handle communication with the mystry box. It provides function for sending and reciving data.
-	public class SensorBox
-	{
-        bool isSenCon;
-        bool isEmergencyButton;
-        bool isLubOn;
-        //bool isAbort; //i think we can do away with this
-        //bool isAlarm; //i think we can do away with this
+    //Class is made to handle communication with the mystry box. It provides function for sending and reciving data.
+    public class SensorBox
+    {
+        internal bool isSenCon;
+        internal bool isEmergencyButton;
+        internal bool isLubOn;
         bool isDoorClosed;
-        bool isPressure;
-        //double TraVolt; // i think this can be a functional variable
-        double TraLoc; 
-        //double LatVolt; // I think this can be a functional variable
-        double LatLoc;
-        double VerLoc;
-		//int VerCount; // I think this can be a functional variable
-		TcpClient SenClient;
-		NetworkStream SenStream;
+        internal bool isPressure;
+        internal double TraLoc; 
+        internal double LatLoc;
+        internal double VerLoc;
+
+        DataController DataController;
+
+        TcpClient SenClient;
+        NetworkStream SenStream;
         Mutex SendMutex;
 
-        public SensorBox()
-		{
-			isSenCon = false;
-            isLubWanted = false;
+        public SensorBox(DataController controller)
+        {
+            isSenCon = false;
             isPressure = false;
             isEmergencyButton = false;
             isLubOn = false;
@@ -39,43 +36,98 @@ namespace MysteryBoxCleanUp
             //isAlarm = false;
             isDoorClosed = true;
 
+            DataController = controller;
+
         //Start up the socket for communication with the mystery box
-        SenClient = new TcpClient();
+            SenClient = new TcpClient();
             SenClient.Connect(IPAddress.Parse("10.10.6.100"), 23);
             SenStream = SenClient.GetStream();
             SendMutex = new Mutex();
         }
 
-		// return type should be changed from void
-		public void sendCommand(string Message)
-		{
-			byte[] BytesOut = System.Text.Encoding.ASCII.GetBytes(Message);
-			SenStream.Write(BytesOut, 0, BytesOut.Length);
-		}
+        // return type should be changed from void
+        public void SendCommand(string Message)
+        {
+            byte[] BytesOut = System.Text.Encoding.ASCII.GetBytes(Message);
+            SenStream.Write(BytesOut, 0, BytesOut.Length);
+        }
 
 
-        void Connect()
+        void ConnectionToggle()
         {
             if (!isSenCon)
             {
-                MesQue.WriteMessageQueue("In order to complete connection to sensor box, vertical sensor must pass over reference mark");
-                ControlThreadStarter(MysteryBoxConnect, "MysteryBoxConnect"); //Starts the Mysterybox connect as its own thread
+                Connect();
             }
             else
             {
-                try
-                {
-                    isSenCon = false;
-                    Thread.Sleep(500);
-                    SenClient.Close();
-                    SenClient = new TcpClient();
-                    //Update Bools
-                    isSenCon = false;
-                }
-                catch (Exception ex)
-                {
-                    MessageBox.Show("Error Trying to disconect from Myster Box\n\n" + ex.Message.ToString(), "Mystery Box Disconect Error");
-                }
+                Disconnect();
+            }
+        }
+
+        void Connect()
+        {
+               MesQue.WriteMessageQueue("In order to complete connection to sensor box, vertical sensor must pass over reference mark");
+               ControlThreadStarter(MysteryBoxConnect, "MysteryBoxConnect"); //Starts the Mysterybox connect as its own thread
+        }
+
+        void Disconnect()
+        {
+            try
+            {
+                isSenCon = false;
+                Thread.Sleep(500);
+                SenClient.Close();
+                SenClient = new TcpClient();
+                //Update Bools
+                isSenCon = false;
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Error Trying to disconect from Myster Box\n\n" + ex.Message.ToString(), "Mystery Box Disconect Error");
+            }
+        }
+
+        internal void MysteryBoxConnect()
+        {
+            int ByteCount;
+            String RecieveData;
+            string SendData;
+            Byte[] BytesOut = new Byte[256];
+            Byte[] BytesIn = new Byte[256];
+
+            try
+            {
+                SenClient = new TcpClient();
+                SenClient.Connect(IPAddress.Parse("10.10.6.100"), 23);
+                SenStream = SenClient.GetStream();
+                SendData = "A";
+                SendData += "X";
+
+                //Clear BytesOut
+                //Translate the passed message
+                BytesOut = Encoding.ASCII.GetBytes(SendData);
+                //Send the message to the sensor client
+
+                SenStream.Write(BytesOut, 0, BytesOut.Length);
+                //Machine must cross over the reference mark on the vertical motor to start
+                //the connection
+                //Read the incoming data
+                ByteCount = SenStream.Read(BytesIn, 0, BytesIn.Length);
+                RecieveData = Encoding.ASCII.GetString(BytesIn, 0, ByteCount);
+                isSenCon = true;
+                DataController.Controller.MotorController.StopVer();
+            }
+            catch (Exception ex)
+            {
+                DataController.Controller.MotorController.StopVer();
+                MessageBox.Show(ex.Message.ToString(), "Mystery Box Connect Error");
+            }
+            WriteMessageQueue("MysteryBoxConnect Completed");
+            try { ControlSemaphore.Release(1); }
+            catch (System.Threading.SemaphoreFullException ex)
+            {
+                MessageBox.Show("error releasing ControlSemaphore 4 " + ex.Message.ToString());
             }
         }
 
@@ -115,47 +167,6 @@ namespace MysteryBoxCleanUp
             string SendData = "L0";
             byte[] BytesOut = Encoding.ASCII.GetBytes(SendData);
             SenStream.Write(BytesOut, 0, BytesOut.Length);
-        }
-
-        void MysteryBoxConnect()
-        {
-            int ByteCount;
-            String RecieveData;
-            try
-            {
-                SenClient = new TcpClient();
-                SenClient.Connect(IPAddress.Parse("10.10.6.100"), 23);
-                SenStream = SenClient.GetStream();
-
-                SendData = "A";
-                SendData += "X";
-
-                //Clear BytesOut
-                //Translate the passed message
-                BytesOut = Encoding.ASCII.GetBytes(SendData);
-                //Send the message to the sensor client
-
-                SenStream.Write(BytesOut, 0, BytesOut.Length);
-                //Machine must cross over the reference mark on the vertical motor to start
-                //the connection
-                //Read the incoming data
-                ByteCount = SenStream.Read(BytesIn, 0, BytesIn.Length);
-                RecieveData = Encoding.ASCII.GetString(BytesIn, 0, ByteCount);
-                isSenCon = true;
-                btnSenCon.BackColor = Color.Green;
-                StopVer();
-            }
-            catch (Exception ex)
-            {
-                StopVer();
-                MessageBox.Show(ex.Message.ToString(), "Mystery Box Connect Error");
-            }
-            WriteMessageQueue("MysteryBoxConnect Completed");
-            try { ControlSemaphore.Release(1); }
-            catch (System.Threading.SemaphoreFullException ex)
-            {
-                MessageBox.Show("error releasing ControlSemaphore 4 " + ex.Message.ToString());
-            }
         }
 
         public void ControlThreadStarter(Action MethodName, string name)

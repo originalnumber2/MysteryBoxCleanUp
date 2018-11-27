@@ -27,52 +27,68 @@ namespace MysteryBoxCleanUp
 
         private double GetVerLoc()
         {
-            throw new NotImplementedException();
+            return controller.LatLoc;
         }
 
         private double GetTraLoc()
         {
-            throw new NotImplementedException();
+            return controller.TraLoc;
         }
 
         private double GetLatLoc()
         {
-            throw new NotImplementedException();
+            return controller.VerLoc;
         }
 
-        void MoveTo(double LatLoc, double TraLoc, double VerLoc)
+        void MoveTo(double latLoc, double traLoc, double verLoc)
         {
-            MoveToLatLoc(LatLoc);
-            MoveToTraLoc(TraLoc);
-            MoveToVerLoc(VerLoc);
-
+            //doesnt move simultanously. would need to spin up seperate threads
+            MoveToLatLoc(latLoc);
+            MoveToTraLoc(traLoc);
+            MoveToVerLoc(verLoc);
         }
 
-        internal void MoveToPlane(double LatLoc, double TraLoc)
-        {
-            MoveToLatLoc(LatLoc);
-            MoveToTraLoc(TraLoc);
+        internal void MoveToPlane(double latLoc, double traLoc)
+        {   
+            //doesnt move simultanously. would need to spin up seperate threads
+            MoveToLatLoc(latLoc);
+            MoveToTraLoc(traLoc);
         }
 
         private void MoveToVerLoc(double verLoc)
         {
-            throw new NotImplementedException();
+            if(Math.Abs(verLoc - VerLoc) < EpsilonVer)
+            {
+                controller.MotorController.MoveVertical();
+            }
+            else
+            {
+                controller.MotorController.StopVertical();
+            }
         }
 
         private void MoveToTraLoc(double traLoc)
         {
-            throw new NotImplementedException();
+            if (Math.Abs(traLoc - TraLoc) < EpsilonTra)
+            {
+                controller.MotorController.MoveTransverse();
+            }
+            else
+            {
+                controller.MotorController.StopTransverse();
+            }
         }
 
         private void MoveToLatLoc(double latLoc)
         {
-            throw new NotImplementedException();
+            if (Math.Abs(latLoc - LatLoc) < EpsilonLat)
+            {
+                controller.MotorController.MoveLateral();
+            }
+            else
+            {
+                controller.MotorController.StopLateral();
+            }
         }
-
-      
-
-
     }
-
-
 }
