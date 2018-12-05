@@ -92,6 +92,7 @@
     <Compile Include="PositionController.cs" />
     <Compile Include="DataController.cs" />
     <Compile Include="NIDaq.cs" />
+    <Compile Include="NIDaqXY.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />

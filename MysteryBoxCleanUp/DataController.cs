@@ -7,6 +7,7 @@ namespace MysteryBoxCleanUp
         internal SensorBox SensorBox;
         internal Dyno Dyno;
         internal NIDaq NIDaq;
+        internal NIDaqXY NIDaqXY;
 
         bool isDynCon;
 
@@ -38,6 +39,7 @@ namespace MysteryBoxCleanUp
             SensorBox = new SensorBox(this);
             Dyno = new Dyno();
             NIDaq = new NIDaq();
+            NIDaqXY = new NIDaqXY();
 
             isDynCon = false;
 
@@ -115,5 +117,11 @@ namespace MysteryBoxCleanUp
             ZForce = NIDaq.ZForce;
             ZMaxHistory = NIDaq.ZMaxHistory;
         }
+
+        void GetNIDaqXYData()
+        {
+            LatLoc = NIDaqXY.LatLoc;
+            TraLoc = NIDaqXY.TraLoc;
+         }
     }
 }
