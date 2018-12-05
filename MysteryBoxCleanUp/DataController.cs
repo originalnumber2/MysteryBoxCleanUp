@@ -7,6 +7,7 @@ namespace MysteryBoxCleanUp
         internal SensorBox SensorBox;
         internal Dyno Dyno;
         internal NIDaq NIDaq;
+        internal NIDaqXY NIDaqXY;
 
         bool isDynCon;
 
@@ -38,6 +39,7 @@ namespace MysteryBoxCleanUp
             SensorBox = new SensorBox(this);
             Dyno = new Dyno();
             NIDaq = new NIDaq();
+            NIDaqXY = new NIDaqXY();
 
             isDynCon = false;
 
@@ -62,7 +64,18 @@ namespace MysteryBoxCleanUp
             VerLoc = 0;
 
             GetConnections();
+            GetData();
 
+        }
+
+        void GetConnections()
+        {
+            isDynCon = Dyno.isDynCon;
+            isSenCon = SensorBox.isSenCon;
+        }
+
+        void GetData()
+        {
             if (isDynCon)
             {
                 GetDynoData();
@@ -75,12 +88,7 @@ namespace MysteryBoxCleanUp
 
             //needs proctection for connection
             GetNIDaqData();
-        }
-
-        void GetConnections()
-        {
-            isDynCon = Dyno.isDynCon;
-            isSenCon = SensorBox.isSenCon;
+            GetNIDaqXYData();
         }
 
         void GetDynoData()
@@ -115,5 +123,11 @@ namespace MysteryBoxCleanUp
             ZForce = NIDaq.ZForce;
             ZMaxHistory = NIDaq.ZMaxHistory;
         }
+
+        void GetNIDaqXYData()
+        {
+            LatLoc = NIDaqXY.LatLoc;
+            TraLoc = NIDaqXY.TraLoc;
+         }
     }
 }
