@@ -64,7 +64,18 @@ namespace MysteryBoxCleanUp
             VerLoc = 0;
 
             GetConnections();
+            GetData();
 
+        }
+
+        void GetConnections()
+        {
+            isDynCon = Dyno.isDynCon;
+            isSenCon = SensorBox.isSenCon;
+        }
+
+        void GetData()
+        {
             if (isDynCon)
             {
                 GetDynoData();
@@ -77,12 +88,7 @@ namespace MysteryBoxCleanUp
 
             //needs proctection for connection
             GetNIDaqData();
-        }
-
-        void GetConnections()
-        {
-            isDynCon = Dyno.isDynCon;
-            isSenCon = SensorBox.isSenCon;
+            GetNIDaqXYData();
         }
 
         void GetDynoData()
