@@ -9,8 +9,9 @@ namespace MysteryBoxCleanUp
         public bool Dir; //Current Direction of the Lateral Axis True - Out False - In
         public double Max;
         public double Min;
+        public double epsilon;
 
-        public MotorState(double MaxSpeed, double MinSpeed)
+        public MotorState(double MaxSpeed, double MinSpeed, double error)
         {
             IsCon = false;
             IsSimulinkControl = false;
@@ -18,50 +19,51 @@ namespace MysteryBoxCleanUp
             Dir = true;
             Max = MaxSpeed;
             Min = MinSpeed;
+            epsilon = error;
         }
 
         public override string ToString()
         {
             return string.Format("[MotorState]");
         }
-    }
 
-    //this function checks if the IPM of the Lateral motor changes then changes it. returns true if so
-    private bool ChangeIPM(double IPM)
-    {
-        //allow for checking of maximum speeds and insure IPM is positive
-        double CheckIPM = Math.Abs(IPM);
-        if (CheckIPM > LatMax)
+        //this function checks if the IPM of the Lateral motor changes then changes it. returns true if so
+        private bool ChangeSpeed(double SetSpeed)
         {
-            CheckIPM = LatMax;
-        }
-        else
-        {
-            if (CheckIPM < LatMin)
+            //allow for checking of maximum speeds and insure IPM is positive
+            double CheckSpeed = Math.Abs(SetSpeed);
+            if (CheckSpeed > Max)
             {
-                CheckIPM = LatMin;
+                CheckSpeed = Max;
             }
+            else
+            {
+                if (CheckSpeed < Min)
+                {
+                    CheckSpeed = Min;
+                }
 
-        }
-        if (Math.Abs(CheckIPM - LatIPM) > epsilon)
-        {
-            LatIPM = CheckIPM;
-            double LatinRPM = IPM * 54.5;
-            double hz = LatinRPM / 60.0;
-            controller.WriteModbusQueue(3, 0x0705, ((int)(hz * 10)), false);
-            return true;
-        }
-        return false;
-    }
-
-    //this function check if the direction of the lateral motor changes. changes it if required. Returns true if so.
-    private bool ChangeDir(bool dir)
-    {
-        if (dir = LatDir)
-        {
+            }
+            if (Math.Abs(CheckSpeed - Speed) > epsilon)
+            {
+                Speed = CheckSpeed;
+                double LatinRPM = SetSpeed * 54.5;
+                double hz = LatinRPM / 60.0;
+                controller.WriteModbusQueue(3, 0x0705, ((int)(hz * 10)), false);
+                return true;
+            }
             return false;
         }
-        LatDir = dir;
-        return true;
+
+        //this function check if the direction of the lateral motor changes. changes it if required. Returns true if so.
+        private bool ChangeDir(bool dir)
+        {
+            if (dir = Dir)
+            {
+                return false;
+            }
+            Dir = dir;
+            return true;
+        }
     }
 }
