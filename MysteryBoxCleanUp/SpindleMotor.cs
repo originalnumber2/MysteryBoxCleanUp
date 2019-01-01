@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 
 namespace MysteryBoxCleanUp
 {
@@ -118,9 +118,9 @@ namespace MysteryBoxCleanUp
             }
         }
 
-        public void moveModbus(double IPM, bool dir)
+        public void MoveModbus(double RPM, bool dir)
         {
-            if (ChangeDir(dir) || ChangeIPM(IPM))
+            if (ChangeDir(dir) || ChangeRPM(RPM))
             {
                 if (SpiDir) { MoveCCModbus() }
                 else MoveCCWModbus();
