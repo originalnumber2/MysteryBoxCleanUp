@@ -24,11 +24,18 @@ namespace MysteryBoxCleanUp
 
         public override string ToString()
         {
-            return string.Format("[MotorState]");
+            string mes = " Connected: " + IsCon.ToString() + " " +
+                "Simulink: " + IsSimulinkControl.ToString() + " " +
+                "Speed: " + Speed.ToString() + " " +
+                "Direction: " + Dir.ToString() + " " +
+                "Max Speed: " + Max.ToString() + " " +
+                "Min Speed: " + Min.ToString() + " " +
+                "epsilon: " + epsilon.ToString();
+            return string.Format(mes);
         }
 
         //this function checks if the IPM of the Lateral motor changes then changes it. returns true if so
-        private bool ChangeSpeed(double SetSpeed)
+        private (bool, double) ChangeSpeed(double SetSpeed)
         {
             //allow for checking of maximum speeds and insure IPM is positive
             double CheckSpeed = Math.Abs(SetSpeed);
@@ -47,23 +54,20 @@ namespace MysteryBoxCleanUp
             if (Math.Abs(CheckSpeed - Speed) > epsilon)
             {
                 Speed = CheckSpeed;
-                double LatinRPM = SetSpeed * 54.5;
-                double hz = LatinRPM / 60.0;
-                controller.WriteModbusQueue(3, 0x0705, ((int)(hz * 10)), false);
-                return true;
+                return (true, Speed);
             }
-            return false;
+            return (false, 0);
         }
 
         //this function check if the direction of the lateral motor changes. changes it if required. Returns true if so.
-        private bool ChangeDir(bool dir)
+        private (bool, bool) ChangeDir(bool dir)
         {
             if (dir = Dir)
             {
-                return false;
+                return (false, Dir);
             }
             Dir = dir;
-            return true;
+            return (true, Dir);
         }
     }
 }
