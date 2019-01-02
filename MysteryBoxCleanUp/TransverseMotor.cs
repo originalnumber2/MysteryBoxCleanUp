@@ -76,7 +76,7 @@ namespace MysteryBoxCleanUp
                 MessageBox.Show("Traverse not connected");
             else
             {
-                Controller.WriteModbusQueue(2, 0x0706, 0x12, false);
+                Controller.WriteModbusQueue(2, 0x0706, 0x12, false); //this does not completely start the transverse motor. i think the speed also has to be set prior to this function
                 IsTraOn = true;
             }
         }
@@ -87,7 +87,7 @@ namespace MysteryBoxCleanUp
                 MessageBox.Show("Traverse not connected");
             else
             {
-                mod.WriteModbusQueue(2, 0x0706, 0x22, false);
+                mod.WriteModbusQueue(2, 0x0706, 0x22, false); //This does not completely start the trasnverse motor. I think the speed also has to be set prior to this function
                 IsTraOn = true;
             }
         }

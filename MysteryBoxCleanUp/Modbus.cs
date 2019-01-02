@@ -39,7 +39,9 @@ namespace MysteryBoxCleanUp
                 MessageBox.Show("Something is wrong? maybe try to restart computer?\n\nHere is some error message stuff...\n\n" + e.ToString(), "Serial Port Error");
                 Process.GetCurrentProcess().Kill();
             }
-
+            //Start the Modbus Writer thread
+            ModBusWriteThread = new Thread(new ThreadStart(WriteModbus));
+            ModBusWriteThread.Start();
 
         }
 

@@ -28,7 +28,7 @@ namespace MysteryBoxCleanUp
         }
 
         //this function checks if the IPM of the Lateral motor changes then changes it. returns true if so
-        private bool ChangeSpeed(double SetSpeed)
+        private (bool, double) ChangeSpeed(double SetSpeed)
         {
             //allow for checking of maximum speeds and insure IPM is positive
             double CheckSpeed = Math.Abs(SetSpeed);
@@ -47,12 +47,9 @@ namespace MysteryBoxCleanUp
             if (Math.Abs(CheckSpeed - Speed) > epsilon)
             {
                 Speed = CheckSpeed;
-                double LatinRPM = SetSpeed * 54.5;
-                double hz = LatinRPM / 60.0;
-                controller.WriteModbusQueue(3, 0x0705, ((int)(hz * 10)), false);
-                return true;
+                return (true, Speed);
             }
-            return false;
+            return (false, 0);
         }
 
         //this function check if the direction of the lateral motor changes. changes it if required. Returns true if so.
